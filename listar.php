@@ -5,6 +5,7 @@ include ("config.php");
 
 
 
+
 // Configuração da paginação
 $produtos_por_pagina = 12;
 $pagina_atual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -21,7 +22,6 @@ $total_produtos = mysqli_fetch_assoc(mysqli_query($liga, "SELECT COUNT(*) as tot
 $total_paginas = ceil($total_produtos / $produtos_por_pagina);
 
 
-
 ?>
 
 <!DOCTYPE html>
@@ -30,7 +30,7 @@ $total_paginas = ceil($total_produtos / $produtos_por_pagina);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PlugVintage</title>
-  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/plugicon.png" type="image/png">
+  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">
   <link rel="stylesheet" href="./css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -39,7 +39,7 @@ $total_paginas = ceil($total_produtos / $produtos_por_pagina);
     <!-- Header -->
     <header class="header">
     <a href="index.php" class="logo">
-    <img src="img/IMAGENS PARA O ICON SITE/logosite.png" alt="PlugVintage Logo">
+    <img src="img/IMAGENS PARA O ICON SITE/logoplug-removebg-preview.png" alt="PlugVintage Logo">
     </a>
 
     <nav class="navbar">
@@ -62,9 +62,19 @@ $total_paginas = ceil($total_produtos / $produtos_por_pagina);
     <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
   </a>
   <!-- Ícone de perfil -->
-  <a href="profile.php">
-    <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
-  </a>
+  <div class="profile-container">
+    <a href="#" id="profile-icon">
+        <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
+    </a>
+    <div class="profile-dropdown" id="profile-dropdown">
+        <?php if (isset($_SESSION['nome_utilizador'])): ?>
+            <p>Hello, <?php echo htmlspecialchars($_SESSION['nome_utilizador']); ?></p>
+            <button id="logout-btn">Logout</button>
+        <?php else: ?>
+            <a href="login.php">Sign in</a>
+        <?php endif; ?>
+    </div>
+</div>
 </div>
 
 <!-- Modal de Pesquisa -->
@@ -232,12 +242,34 @@ if (searchIcon && searchModal && closeModal && searchInput) {
 }
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const profileIcon = document.getElementById("profile-icon");
+    const profileDropdown = document.getElementById("profile-dropdown");
+    const logoutBtn = document.getElementById("logout-btn");
 
+    // Alterna o dropdown ao clicar no ícone do perfil
+    profileIcon.addEventListener("click", function (event) {
+        event.preventDefault();
+        profileDropdown.classList.toggle("show");
+    });
 
+    // Fecha o dropdown se clicar fora
+    document.addEventListener("click", function (event) {
+        if (!profileIcon.contains(event.target) && !profileDropdown.contains(event.target)) {
+            profileDropdown.classList.remove("show");
+        }
+    });
 
+    // Logout
+    logoutBtn.addEventListener("click", function () {
+        window.location.href = "logout.php";
+    });
+});
 
+</script>
 
-
+<?php include('footer.php'); ?>
 
 </body>
 </html>

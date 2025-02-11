@@ -730,7 +730,7 @@ body {
     font-weight: bold;
     color: #000000;
   }
-/* Estilo inicial do botão "Adicionar ao Carrinho" com animação */
+/* Botão ativo (Adicionar ao Carrinho) */
 .add-to-cart {
   margin-top: 20px;
   padding: 15px 30px;
@@ -751,33 +751,13 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Adiciona sombra */
 }
 
-/* Estilo do botão quando clicado */
-.add-to-cart.added {
-  background-color: transparent;
-  color: black;
-  border: 1px solid black; /* Adiciona uma borda preta (opcional) */
-  cursor: default; /* Remove o efeito de botão clicável */
-  box-shadow: none; /* Remove a sombra */
-  transform: none; /* Remove a transformação */
-  transition: none; /* Remove animações */
-}
-
-/* Estilo do botão "Cancelar" */
-.cancel-button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-  background-color: #ff4d4d; /* Vermelho */
+/* Botão desativado (já adicionado ao carrinho) */
+.add-to-cart[disabled] {
+  background-color: #ccc; /* Cinza */
+  color: #666; /* Texto cinza escuro */
+  cursor: not-allowed;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.cancel-button:hover {
-  background-color: #e60000; /* Vermelho mais escuro */
+  box-shadow: none; /* Remove sombra */
 }
 
 
@@ -853,10 +833,9 @@ body {
 
 
 
+/* ----------------PÁGINA DAS BRANDS---------------- */
 
-
-/*------------------------PAGINA DAS BRANDS------------------------*/
-
+/* Estilo para o cabeçalho */
 .brands-header {
   margin-top: 100px; /* Espaçamento do header */
   margin-bottom: 20px; /* Reduz o espaço entre o título e as marcas */
@@ -867,4 +846,505 @@ body {
   font-family: 'Poppins', sans-serif;
   padding: 10px 0; /* Espaçamento interno */
   background-color: white;
+}
+
+/* Estilo para marcas desabilitadas */
+.product.disabled {
+  opacity: 0.4; /* Marca mais opaca */
+  pointer-events: none; /* Impede cliques */
+  cursor: not-allowed; /* Ícone de cursor desativado */
+  transform: scale(0.95); /* Reduz ligeiramente o tamanho */
+  box-shadow: none; /* Remove qualquer sombra */
+  transition: all 0.3s ease; /* Adiciona uma transição suave */
+}
+
+/* Efeito visual para imagens desabilitadas */
+.product.disabled img {
+  filter: grayscale(100%) brightness(70%); /* Torna a imagem cinzenta e escurece */
+  transform: scale(0.9); /* Reduz o tamanho da imagem */
+  transition: filter 0.3s ease, transform 0.3s ease; /* Animações suaves */
+}
+
+/* Texto indicando que a marca está desabilitada */
+.product.disabled .product-title {
+  color: #666; /* Torna o texto mais claro */
+  font-style: italic; /* Adiciona um estilo itálico */
+  text-decoration: line-through; /* Risca o texto */
+}
+
+
+
+
+
+
+
+/*------------------------CSS DO RODAPE------------------------*/
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+
+
+.footer {
+  background-color: #000;
+  color: #fff;
+  padding: 20px 0;
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.footer-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.footer-section h4 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section ul li {
+  margin: 5px 0;
+}
+
+.footer-section ul li a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.footer-section ul li a:hover {
+  text-decoration: underline;
+}
+
+.footer-bottom {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+/*------------------------CSS DO LOGIN------------------------*/
+/*---------------------- LOGIN FORM ----------------------*/
+
+.login-container {
+  max-width: 420px; /* Aumentei um pouco para dar mais espaço */
+  margin: 50px auto;
+  padding: 30px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Centraliza o conteúdo no meio da página */
+main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 85vh; /* Ocupa 85% da altura da tela */
+}
+
+/* Estilização dos campos */
+.login-form {
+  width: 100%;
+}
+
+.login-form label {
+  text-align: left;
+  font-weight: bold;
+  margin-bottom: 8px; /* Aumentei para mais espaço */
+  color: #333;
+  display: block;
+  font-size: 16px;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px; /* Aumentei um pouco */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 16px;
+  margin-bottom: 20px; /* Aumentei o espaço entre os campos */
+  transition: border 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.login-form input:focus {
+  border-color: #007BFF;
+  outline: none;
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+}
+
+/* Botão de Login */
+.login-form button {
+  width: 100%;
+  padding: 16px; /* Botão maior */
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
+  margin-top: 15px; /* Mais espaço antes do botão */
+}
+
+.login-form button:hover {
+  background-color: #0056b3;
+  transform: scale(1.03);
+}
+
+/* Link para Register */
+.login-container p {
+  margin-top: 20px; /* Mais espaço antes do link */
+}
+
+.login-container a {
+  text-decoration: none;
+  color: #007BFF;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.login-container a:hover {
+  text-decoration: underline;
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .login-container {
+    max-width: 90%;
+    padding: 25px;
+  }
+
+  .login-form input {
+    padding: 10px;
+  }
+
+  .login-form button {
+    padding: 14px;
+  }
+}
+
+
+
+
+/*------------------------ CSS DO SIGN UP ------------------------*/
+
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.register-box {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 400px;
+  text-align: center;
+}
+
+.register-box h1 {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.register-box label {
+  display: block;
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 5px;
+}
+
+.register-box input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 16px;
+  transition: border 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.register-box input:focus {
+  border-color: #007BFF;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+.password-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-container input {
+  width: 100%;
+  padding-right: 45px;
+}
+
+.password-container img {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.password-container img:hover {
+  opacity: 1;
+}
+
+.register-box button {
+  width: 100%;
+  padding: 14px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.register-box button:hover {
+  background-color: #0056b3;
+  transform: scale(1.03);
+}
+
+.register-box button:active {
+  background-color: #004292;
+  transform: scale(0.98);
+}
+
+/* Estilo das mensagens de erro e sucesso */
+.error-message {
+  color: #d9534f;
+  background: #f8d7da;
+  border-left: 5px solid #c9302c;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.success-message {
+  color: #28a745;
+  background: #d4edda;
+  border-left: 5px solid #218838;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .register-box {
+    width: 90%;
+    padding: 20px;
+  }
+}
+
+
+
+/*------------------------CSS DO DROPDOWN------------------------*/
+/* Container do dropdown */
+.profile-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Estilo do dropdown */
+.profile-dropdown {
+  position: absolute;
+  top: 50px; /* Ajusta a posição abaixo do ícone */
+  left: 50%;
+  transform: translateX(-80%); /* Move mais para a esquerda */
+  width: 160px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+  padding: 12px 15px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Quando o dropdown é ativado */
+.profile-dropdown.show {
+  display: flex;
+}
+
+/* Estiliza o link do "Sign in" */
+.profile-dropdown a {
+  text-decoration: none;
+  font-size: 16px;
+  color: #007BFF;
+  font-weight: bold;
+  transition: color 0.3s ease-in-out;
+  white-space: nowrap;
+}
+
+/* Ajuste fino no alinhamento do texto */
+.profile-dropdown a span {
+  display: block;
+  text-align: center;
+}
+
+/* Efeito hover */
+.profile-dropdown a:hover {
+  color: #0056b3;
+}
+
+
+
+
+/* ------------------------BACK BUTTON------------------------ */
+.back-button {
+  position: absolute;
+  top: 90px; /* Ajuste conforme necessário */
+  left: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s ease-in-out;
+}
+
+.back-button img {
+  width: 30px; /* Ajustado para um tamanho menor */
+  height: 30px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.back-button:hover {
+  transform: scale(1.1);
+}
+
+
+
+
+
+
+
+/*------------------------CSS DO CARRINHO------------------------*/
+/* Estilo geral para o carrinho */
+main {
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 1200px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 80px;
+}
+
+/* Estilo da tabela do carrinho */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  text-align: left;
+  padding: 10px;
+}
+
+th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Estilo do total */
+.cart-total {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: right;
+  margin-top: 20px;
+}
+
+/* Estilo do botão "Remover" */
+button {
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+
+
+/* Responsividade para dispositivos menores */
+@media screen and (max-width: 768px) {
+  main {
+    padding: 10px;
+  }
+
+  table {
+    font-size: 14px;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+
+  .cart-total {
+    font-size: 20px;
+  }
 }

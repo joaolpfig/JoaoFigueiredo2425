@@ -1,15 +1,8 @@
 <?php 
 include("config.php");
 
-// Obter a lista de marcas em ordem alfabética
-$marcas_query = "SELECT id_marca, nome_marca, caminho_imagem_brand FROM marcas ORDER BY nome_marca ASC"; // Certifique-se que a tabela e os campos estão corretos
-$resultado_marcas = mysqli_query($liga, $marcas_query);
-
-if (!$resultado_marcas) {
-    die('Erro ao obter marcas: ' . mysqli_error($liga));
-}
-
-$marcas = mysqli_fetch_all($resultado_marcas, MYSQLI_ASSOC);
+// Obter todas as marcas usando a função do config
+$marcas = buscarMarcasComProdutos($liga);
 ?>
 
 <!DOCTYPE html>
@@ -18,7 +11,7 @@ $marcas = mysqli_fetch_all($resultado_marcas, MYSQLI_ASSOC);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PlugVintage - Marcas</title>
-  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/plugicon.png" type="image/png">
+  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">
   <link rel="stylesheet" href="./css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -26,7 +19,7 @@ $marcas = mysqli_fetch_all($resultado_marcas, MYSQLI_ASSOC);
     <!-- Header -->
     <header class="header">
       <a href="index.php" class="logo">
-        <img src="img/IMAGENS PARA O ICON SITE/logosite.png" alt="PlugVintage Logo">
+      <img src="img/IMAGENS PARA O ICON SITE/logoplug-removebg-preview.png" alt="PlugVintage Logo">
       </a>
 
       <nav class="navbar">
@@ -49,7 +42,7 @@ $marcas = mysqli_fetch_all($resultado_marcas, MYSQLI_ASSOC);
           <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
         </a>
         <!-- Ícone de perfil -->
-        <a href="profile.php">
+        <a href="login.php">
           <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
         </a>
       </div>
@@ -73,18 +66,26 @@ $marcas = mysqli_fetch_all($resultado_marcas, MYSQLI_ASSOC);
 
     <!-- Lista de Marcas -->
     <div class="products">
-      <?php foreach ($marcas as $marca): ?>
-        <div class="product">
-          <a href="resultados.php?marca=<?php echo urlencode($marca['id_marca']); ?>">
-    <img src="<?php echo htmlspecialchars($marca['caminho_imagem_brand']); ?>" 
-         alt="<?php echo htmlspecialchars($marca['nome_marca']); ?>" 
-         class="product-image">
-</a>
-<div class="product-title"><?php echo htmlspecialchars($marca['nome_marca']); ?></div>
-        </div>
-      <?php endforeach; ?>
+        <?php foreach ($marcas as $marca): ?>
+            <div class="product <?php echo ($marca['total_produtos'] == 0) ? 'disabled' : ''; ?>">
+                <?php if ($marca['total_produtos'] > 0): ?>
+                    <!-- Marca clicável -->
+                    <a href="resultados.php?marca=<?php echo urlencode($marca['id_marca']); ?>">
+                        <img src="<?php echo htmlspecialchars($marca['caminho_imagem_brand']); ?>" 
+                             alt="<?php echo htmlspecialchars($marca['nome_marca']); ?>" 
+                             class="product-image">
+                    </a>
+                <?php else: ?>
+                    <!-- Marca desativada -->
+                    <img src="<?php echo htmlspecialchars($marca['caminho_imagem_brand']); ?>" 
+                         alt="<?php echo htmlspecialchars($marca['nome_marca']); ?>" 
+                         class="product-image">
+                <?php endif; ?>
+                <div class="product-title"><?php echo htmlspecialchars($marca['nome_marca']); ?></div>
+            </div>
+        <?php endforeach; ?>
     </div>
-  </div>
+
 
   
 </body>
@@ -249,7 +250,7 @@ if (searchIcon && searchModal && closeModal && searchInput) {
 </script>
 
 
-
+<?php include('footer.php'); ?>
 
 </body>
 </html>

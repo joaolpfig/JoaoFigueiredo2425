@@ -57,6 +57,7 @@ if (!empty($marca_id)) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Resultados</title>
+  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">
   <link rel="stylesheet" href="./css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -64,7 +65,7 @@ if (!empty($marca_id)) {
   <div class="listar-page">
   <header class="header">
     <a href="index.php" class="logo">
-    <img src="img/IMAGENS PARA O ICON SITE/logosite.png" alt="PlugVintage Logo">
+    <img src="img/IMAGENS PARA O ICON SITE/logoplug-removebg-preview.png" alt="PlugVintage Logo">
     </a>
 
     <nav class="navbar">
@@ -84,7 +85,7 @@ if (!empty($marca_id)) {
         <a href="cart.php">
           <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
         </a>
-        <a href="profile.php">
+        <a href="login.php">
           <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
         </a>
       </div>
@@ -238,6 +239,6 @@ if (searchIcon && searchModal && closeModal && searchInput) {
 }
 </script>
 
-
+<?php include('footer.php'); ?>
 </body>
 </html>

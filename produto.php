@@ -1,11 +1,10 @@
 <?php
 // Inclui o ficheiro de configuração para conexão com a base de dados
 include('config.php');
+session_start();
 
 // Obtém o ID do produto da URL
 $idProduto = isset($_GET['id_produtos']) ? (int) $_GET['id_produtos'] : 0;
-
-
 
 // Verifica se o ID é válido
 if ($idProduto <= 0) {
@@ -13,16 +12,50 @@ if ($idProduto <= 0) {
     exit;
 }
 
+// Busca os detalhes do produto e suas imagens
+$produtos = buscarProdutosPorId($idProduto);
+$imagensProduto = buscarImagensProduto($idProduto);
 
-// Chama a função para listar os produtos
-$produtos = buscarProdutosPorId($idProduto); 
-$imagensProduto=buscarImagensProduto($idProduto);
+if (!$produtos) {
+    echo "<h1>Produto não encontrado.</h1>";
+    exit;
+}
 
+// Verifica se o produto está no carrinho
+$produtoNoCarrinho = false;
+if (isset($_SESSION['id_utilizador'])) {
+    $idUtilizador = $_SESSION['id_utilizador'];
+    $sqlCarrinho = "SELECT COUNT(*) AS total FROM carrinho WHERE id_utilizador = ? AND id_produtos = ?";
+    $stmtCarrinho = $liga->prepare($sqlCarrinho);
+    $stmtCarrinho->bind_param("ii", $idUtilizador, $idProduto);
+    $stmtCarrinho->execute();
+    $resultCarrinho = $stmtCarrinho->get_result()->fetch_assoc();
+    $produtoNoCarrinho = $resultCarrinho['total'] > 0;
+}
 
+// Verifica se o botão "Adicionar ao Carrinho" foi clicado
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_SESSION['id_utilizador'])) {
+        header("Location: login.php");
+        exit();
+    }
 
+    $idUtilizador = $_SESSION['id_utilizador'];
 
+    // Adiciona o produto ao carrinho e atualiza o estoque
+    $adicionado = adicionarAoCarrinho($idUtilizador, $idProduto, $liga);
 
+    if ($adicionado) {
+        echo "<script>alert('Produto adicionado ao carrinho!');</script>";
+        header("Location: cart.php");
+        exit();
+    } else {
+        echo "<script>alert('Produto esgotado ou não disponível.');</script>";
+    }
+}
 ?>
+
+
 
 
 
@@ -32,6 +65,7 @@ $imagensProduto=buscarImagensProduto($idProduto);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PlugVintage</title>
+  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/plugicon.png" type="image/png">
   <link rel="stylesheet" href="./css/style.css"> <!-- Incluindo o CSS externo -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -39,7 +73,7 @@ $imagensProduto=buscarImagensProduto($idProduto);
     <!-- Header -->
     <header class="header">
     <a href="index.php" class="logo">
-        <img src="img/IMAGENS PARA O ICON SITE/logosite.png" alt="PlugVintage Logo">
+    <img src="img/IMAGENS PARA O ICON SITE/logoplug-removebg-preview.png" alt="PlugVintage Logo">
     </a>
     
     <nav class="navbar">
@@ -63,7 +97,7 @@ $imagensProduto=buscarImagensProduto($idProduto);
     <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
   </a>
   <!-- Ícone de perfil -->
-  <a href="profile.php">
+  <a href="login.php">
     <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
   </a>
   </div>
@@ -79,48 +113,49 @@ $imagensProduto=buscarImagensProduto($idProduto);
     </header>
 
     <!-- Product Page -->
-    <div class="product-page">
-      <!-- Product Image Slider -->
-        <div class="produto-layout"> <!-- Div principal para layout flex -->
-            <!-- Container exclusivo do slider -->
-            <div class="slider-container">
-                <div class="slider">
-                    <div class="list">
-                        <?php foreach ($imagensProduto as $imagem): ?>
-                            <div class="item">
-                                <img src="<?php echo htmlspecialchars($imagem); ?>" alt="Imagem do Produto">
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <div class="buttons">
-                        <button id="prev"><</button>
-                        <button id="next">></button>
-                    </div>
-                    <ul class="dots">
-                        <?php foreach ($imagensProduto as $key => $imagem): ?>
-                            <li class="<?php echo $key === 0 ? 'active' : ''; ?>"></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            </div>
-            <div class="separator"></div>
-<!-- Container exclusivo das informações -->
-            <div class="descricao-container">
-                <div class="descricao-produto">
-                    <h1><?php echo htmlspecialchars($produtos['nome_produto']); ?></h1>
-                    <div class="Categorie"><?php echo htmlspecialchars($produtos['categorie']); ?></div>
-                    <div class="Brand"> <?php echo htmlspecialchars($produtos['brand']); ?></div>
-                    <div class="Preco"> <?php echo number_format($produtos['preco'] ?? 0, 2, ',', '.'); ?> €</div>
-                    <div class="Size">Size: <?php echo htmlspecialchars($produtos['size']); ?></div>
-                    <div class="Color">Color: <?php echo htmlspecialchars($produtos['color']); ?></div>
-                    <!-- Botão de adicionar ao carrinho -->
-                    <button class="add-to-cart">Adicionar ao Carrinho</button>
-                    <div class="cancel-container"></div> <!-- Div para conter o botão Cancelar -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    
+  <div class="product-page">
+      <div class="produto-layout">
+          <!-- Slider de imagens -->
+          <div class="slider-container">
+              <div class="slider">
+                  <div class="list">
+                      <?php foreach ($imagensProduto as $imagem): ?>
+                          <div class="item">
+                              <img src="<?php echo htmlspecialchars($imagem); ?>" alt="Imagem do Produto">
+                          </div>
+                      <?php endforeach; ?>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Informações do Produto -->
+          <div class="descricao-container">
+              <h1><?php echo htmlspecialchars($produtos['nome_produto']); ?></h1>
+              <div class="Categorie">Categorie: <?php echo htmlspecialchars($produtos['categorie']); ?></div>
+              <div class="Brand">Brand: <?php echo htmlspecialchars($produtos['brand']); ?></div>
+              <div class="Preco">Price: <?php echo number_format($produtos['preco'], 2, ',', '.'); ?> €</div>
+              <div class="Size">Size: <?php echo htmlspecialchars($produtos['size']); ?></div>
+              <div class="Color">Color: <?php echo htmlspecialchars($produtos['color']); ?></div>
+              <!-- Botão de adicionar ao carrinho -->
+              <form method="POST" action="">
+    <input type="hidden" name="id_produto" value="<?php echo $idProduto; ?>">
+
+    <?php if ($produtoNoCarrinho): ?>
+        <!-- Produto já está no carrinho -->
+        <button type="button" class="add-to-cart" disabled>
+            Adicionado ao Carrinho
+        </button>
+    <?php else: ?>
+        <!-- Produto ainda não está no carrinho -->
+        <button type="submit" class="add-to-cart">
+            Adicionar ao Carrinho
+        </button>
+    <?php endif; ?>
+</form>
+          </div>
+      </div>
+  </div>
+
 
 
     <!-- JavaScript no final da página -->
@@ -335,4 +370,65 @@ if (searchIcon && searchModal && closeModal && searchInput) {
 } else {
     console.error("Elementos necessários para o modal de pesquisa não foram encontrados.");
 }
+
+
+
+
 </script>
+
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const addToCartButton = document.querySelector(".add-to-cart");
+
+    if (addToCartButton) {
+        addToCartButton.addEventListener("click", function (e) {
+            e.preventDefault(); // Impede o envio normal do formulário
+
+            const form = this.closest("form"); // Obtém o formulário ao qual o botão pertence
+            const formData = new FormData(form); // Cria um FormData com os dados do formulário
+
+            fetch("", {
+                method: "POST", // Envia os dados para o próprio ficheiro (processado pelo PHP)
+                body: formData, // Inclui os dados do produto
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Erro ao processar a requisição");
+                }
+                return response.text();
+            })
+            .then(() => {
+                alert("Produto adicionado ao carrinho!"); // Exibe uma mensagem de sucesso
+                atualizarCarrinho(); // Atualiza o contador no ícone do carrinho
+            })
+            .catch((error) => {
+                console.error("Erro ao adicionar ao carrinho:", error);
+            });
+        });
+    }
+
+    // Função para atualizar o contador do carrinho
+    function atualizarCarrinho() {
+        fetch("contar_carrinho.php") // Endpoint que retorna o número de itens no carrinho
+            .then((response) => response.text())
+            .then((data) => {
+                const contador = document.querySelector(".icons a[href='cart.php'] .contador");
+                if (contador) {
+                    contador.textContent = data > 0 ? data : ""; // Atualiza o contador ou esconde
+                }
+            });
+    }
+
+    // Atualiza o contador do carrinho ao carregar a página
+    atualizarCarrinho();
+});
+</script>
+
+
+<?php include('footer.php'); ?>
+
+</body>
+</html>

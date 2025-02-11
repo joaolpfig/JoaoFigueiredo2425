@@ -1,13 +1,59 @@
+<?php
+session_start();
+require_once 'config.php';
+
+// Verifica se o utilizador está logado
+if (!isset($_SESSION['id_utilizador'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$idUtilizador = $_SESSION['id_utilizador'];
+
+// Verifica se há uma solicitação para remover um produto do carrinho
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_carrinho'])) {
+    $idCarrinho = $_POST['id_carrinho'];
+
+    // Remove o produto do carrinho e atualiza o estoque
+    $sqlProduto = "SELECT id_produtos, quantidade FROM carrinho WHERE id_carrinho = ?";
+    $stmtProduto = $liga->prepare($sqlProduto);
+    $stmtProduto->bind_param('i', $idCarrinho);
+    $stmtProduto->execute();
+    $resultProduto = $stmtProduto->get_result();
+    $produtoCarrinho = $resultProduto->fetch_assoc();
+
+    if ($produtoCarrinho) {
+        // Atualiza o estoque na tabela produtos
+        $sqlUpdateEstoque = "UPDATE produtos SET quantidade = quantidade + ? WHERE id_produtos = ?";
+        $stmtUpdateEstoque = $liga->prepare($sqlUpdateEstoque);
+        $stmtUpdateEstoque->bind_param('ii', $produtoCarrinho['quantidade'], $produtoCarrinho['id_produtos']);
+        $stmtUpdateEstoque->execute();
+
+        // Remove o produto do carrinho
+        removerProdutoCarrinho($idCarrinho, $liga);
+    }
+}
+
+// Obtém os produtos no carrinho
+$produtosCarrinho = buscarProdutosCarrinho($idUtilizador, $liga);
+$total = calcularTotalCarrinho($produtosCarrinho);
+?>
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlugVintage</title>
-    <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">    <link rel="stylesheet" href="./css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlugVintage</title>
+  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">
+  <link rel="stylesheet" href="./css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div class="listar-page">
     <!-- Header -->
     <header class="header">
     <a href="index.php" class="logo">
@@ -34,7 +80,7 @@
     <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
   </a>
   <!-- Ícone de perfil -->
-  <a href="login.php">
+  <a href="profile.php">
     <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
   </a>
 </div>
@@ -47,87 +93,52 @@
         <button id="search-button" class="search-button">Search</button>
     </div>
 </div>
-      </nav>
     </header>
+
+
+
+
+
+    <main>
+    <h1>O Meu Carrinho</h1>
+      <?php if (count($produtosCarrinho) > 0): ?>
+        <table>
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Marca</th>
+              <th>Preço</th>
+              <th>Quantidade</th>
+              <th>Subtotal</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($produtosCarrinho as $produto): ?>
+              <tr>
+                <td><?php echo htmlspecialchars($produto['nome_produto']); ?></td>
+                <td><?php echo htmlspecialchars($produto['nome_marca']); ?></td>
+                <td><?php echo number_format($produto['preco'], 2, ',', '.'); ?> €</td>
+                <td><?php echo htmlspecialchars($produto['quantidade']); ?></td>
+                <td><?php echo number_format($produto['preco'] * $produto['quantidade'], 2, ',', '.'); ?> €</td>
+                <td>
+                  <form method="POST" action="remove_cart.php">
+                  <input type="hidden" name="id_carrinho" value="<?php echo $produto['id_carrinho']; ?>">
+                  <button type="submit">Remover</button>
+                  </form>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        <h2>Total: <?php echo number_format($total, 2, ',', '.'); ?> €</h2>
+      <?php else: ?>
+        <p>O seu carrinho está vazio!</p>
+      <?php endif; ?>
+    </main>
+
+
     
-
-    <section class="features-section">
-    <div class="feature">
-        <img src="img/IMAGENS ABOUT US/1882190.png" alt="Fast Shipping" class="feature-icon">
-        <h3>FAST SHIPPING</h3>
-        <p>Shipping out every weekday</p>
-    </div>
-    <div class="feature">
-        <img src="img/IMAGENS ABOUT US/8539194.png" alt="Competitive Prices" class="feature-icon">
-        <h3>COMPETITIVE PRICES</h3>
-        <p>Below market rate</p>
-    </div>
-    <div class="feature">
-        <img src="img/IMAGENS ABOUT US/4181268.png" alt="Authenticity Guaranteed" class="feature-icon">
-        <h3>AUTHENTICITY GUARANTEED</h3>
-        <p>Or your money back</p>
-    </div>
-    <div class="feature">
-        <img src="img/IMAGENS ABOUT US/126482.png" alt="200+ Happy Customers" class="feature-icon">
-        <h3>200+ HAPPY CUSTOMERS</h3>
-        <p>Shop with confidence</p>
-    </div>
-</section>
-
-
-
-    <section class="info-section">
-    <h2 class="info-title">INFO.</h2>
-    <div class="accordion">
-        <div class="accordion-item">
-            <button class="accordion-button">
-                <span>&#9432;</span> FREQUENTLY ASKED QUESTIONS.
-                <span class="icon">+</span>
-            </button>
-            <div class="accordion-content">
-                <p>Here you can find answers to our most common questions.</p>
-            </div>
-        </div>
-
-        <div class="accordion-item">
-            <button class="accordion-button">
-                <span>&#10226;</span> RETURNS POLICY.
-                <span class="icon">+</span>
-            </button>
-            <div class="accordion-content">
-                <p>Returns and Refunds are only accepted if the product is not as described by us such as undisclosed defects..</p>
-            </div>
-        </div>
-
-        <div class="accordion-item">
-            <button class="accordion-button">
-                <span>&#9889;</span> ABOUT US.
-                <span class="icon">+</span>
-            </button>
-            <div class="accordion-content">
-                <p>
-                We are a group of friends in Portugal and at the request of many we created a website to buy your clothes.
-
-                We have been selling clothes since 2023, mainly in the UK streetwear style, with the best prices.
-
-                The photos and prices were taken from the website: https://bountybodega.com
-                </p>
-            </div>
-        </div>
-
-        <div class="accordion-item">
-            <button class="accordion-button">
-                <span>&#9745;</span> PRIVACY POLICY.
-                <span class="icon">+</span>
-            </button>
-            <div class="accordion-content">
-                <p>Your data privacy is important to us. Read more about how we handle your information securely.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-
 <!----------------Java Script Do Pesquisar---------------->
 <script>
 // Seleção de elementos
@@ -234,28 +245,9 @@ if (searchIcon && searchModal && closeModal && searchInput) {
 </script>
 
 
-
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const accordionButtons = document.querySelectorAll(".accordion-button");
-
-    accordionButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            const accordionItem = button.parentElement;
-
-            // Fecha todos os outros accordions
-            document.querySelectorAll(".accordion-item").forEach(item => {
-                if (item !== accordionItem) {
-                    item.classList.remove("active");
-                }
-            });
-
-            // Alterna o estado ativo
-            accordionItem.classList.toggle("active");
-        });
-    });
-});
-
-
 <?php include('footer.php'); ?>
-</script>
+
+
+
+</body>
+</html>

@@ -22,7 +22,7 @@ $total_paginas = ceil($total_produtos / $produtos_por_pagina);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PlugVintage - T-shirts</title>
-  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/plugicon.png" type="image/png">
+  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">
   <link rel="stylesheet" href="./css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -31,7 +31,7 @@ $total_paginas = ceil($total_produtos / $produtos_por_pagina);
     <!-- Header -->
     <header class="header">
       <a href="index.php" class="logo">
-        <img src="img/IMAGENS PARA O ICON SITE/logosite.png" alt="PlugVintage Logo">
+      <img src="img/IMAGENS PARA O ICON SITE/logoplug-removebg-preview.png" alt="PlugVintage Logo">
       </a>
       <nav class="navbar">
         <a href="index.php">HOME</a>
@@ -52,7 +52,7 @@ $total_paginas = ceil($total_produtos / $produtos_por_pagina);
     <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
   </a>
   <!-- Ícone de perfil -->
-  <a href="profile.php">
+  <a href="login.php">
     <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
   </a>
 </div>
@@ -221,5 +221,7 @@ if (searchIcon && searchModal && closeModal && searchInput) {
     console.error("Elementos necessários para o modal de pesquisa não foram encontrados.");
 }
 </script>
+
+<?php include('footer.php'); ?>
 </body>
 </html>
