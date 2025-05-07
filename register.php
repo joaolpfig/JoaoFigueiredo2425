@@ -72,8 +72,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign Up - PlugVintage</title>
-  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">
   <link rel="stylesheet" href="./css/style.css">
+
+
+
+  <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">
+  
+
 </head>
 <body>
     <!-- Header -->
@@ -127,46 +132,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
     </header>
 
-<!-- Back Button -->
-<button class="back-button" onclick="history.back()">
-    <img src="img/IMAGENS INDEX/seta-esquerda.png" alt="Back">
-</button>
+ <div class="register-container">
+    <!-- Botão de voltar -->
+    <button class="back-button" onclick="history.back()">
+        <img src="img/IMAGENS INDEX/seta-esquerda.png" alt="Back">
+    </button>
 
-<main class="register-container">
-    <div class="form-side">
+    <!-- Formulário de Registo -->
+    <div class="register-box">
         <h1>Sign Up</h1>
-        <form method="POST" action="register.php" class="register-form">
-            <!-- Error / Success Messages -->
-            <?php if (!empty($error)): ?>
-                <p class="error-message"><?php echo htmlspecialchars($error); ?></p>
-            <?php endif; ?>
-            <?php if (!empty($success)): ?>
-                <p class="success-message"><?php echo htmlspecialchars($success); ?></p>
-            <?php endif; ?>
 
-            <label for="name">Full Name:</label>
-            <input type="text" name="name" id="name" required>
+        <form action="register.php" method="POST">
+            <label for="full-name">Full Name:</label>
+            <input type="text" id="full-name" name="full-name" required>
 
             <label for="email">Email Address:</label>
-            <input type="email" name="email" id="email" required>
+            <input type="email" id="email" name="email" required>
 
             <label for="password">Password:</label>
             <div class="password-container">
-                <input type="password" name="password" id="password" required>
-                <img src="img/IMAGENS INDEX/ocultar.png" alt="Show/Hide" class="toggle-password" onclick="togglePassword('password', this)">
+                <input type="password" id="password" name="password" required>
+                <img src="img/IMAGENS INDEX/ocultar.png" alt="Show Password" onclick="togglePassword('password', this)">
             </div>
 
-            <label for="confirm_password">Confirm Password:</label>
+            <label for="confirm-password">Confirm Password:</label>
             <div class="password-container">
-                <input type="password" name="confirm_password" id="confirm_password" required>
-                <img src="img/IMAGENS INDEX/ocultar.png" alt="Show/Hide" class="toggle-password" onclick="togglePassword('confirm_password', this)">
+                <input type="password" id="confirm-password" name="confirm-password" required>
+                <img src="img/IMAGENS INDEX/ocultar.png" alt="Show Password" onclick="togglePassword('confirm-password', this)">
             </div>
 
             <button type="submit">Create Account</button>
         </form>
-
     </div>
-</main>
+</div>
+
+
+
+
 
 <script>
 function togglePassword(inputId, icon) {

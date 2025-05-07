@@ -1,5 +1,12 @@
 <?php 
+session_start();
 include("config.php");
+
+
+$idUtilizador = $_SESSION['id_utilizador'] ?? null;
+$totalItensCarrinho = contarItensCarrinho($idUtilizador);
+
+
 
 $produtos_por_pagina = 12;
 $pagina_atual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -79,15 +86,41 @@ if (!empty($marca_id)) {
       </nav>
 
       <div class="icons">
-        <a href="#" id="search-icon">
-          <img src="img/IMAGENS INDEX/pesquisa.png" alt="Pesquisa" class="icon-image">
-        </a>
-        <a href="cart.php">
-          <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
-        </a>
-        <a href="login.php">
-          <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
-        </a>
+
+        <!-- Ícone de pesquisa -->
+            <a href="#" id="search-icon">
+                <img src="img/IMAGENS INDEX/pesquisa.png" alt="Pesquisa" class="icon-image">
+            </a>
+
+
+        <!-- Ícone do carrinho -->
+        <a href="cart.php" class="cart-container">
+                <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
+                <?php if ($totalItensCarrinho > 0): ?>
+                    <span class="cart-counter"><?php echo $totalItensCarrinho; ?></span>
+                <?php endif; ?>
+            </a>
+
+
+
+        <!-- Ícone de perfil -->
+        <div class="profile-container">
+                <a href="#" id="profile-icon">
+                    <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
+                </a>
+                <div class="profile-container">
+                    <div class="profile-dropdown" id="profile-dropdown">
+                        <?php if (isset($_SESSION['nome_utilizador'])): ?>
+                            <p>Hello, <?php echo htmlspecialchars($_SESSION['nome_utilizador']); ?></p>
+                            <button id="logout-btn" class="logout-button">Logout</button>
+                        <?php else: ?>
+                            <a href="login.php">Sign In</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+
       </div>
     </header>
 
@@ -119,6 +152,9 @@ if (!empty($marca_id)) {
       <?php endfor; ?>
     </div>
   </div>
+
+
+
 
   <script>
     const items = document.querySelectorAll('.product');
@@ -239,6 +275,64 @@ if (searchIcon && searchModal && closeModal && searchInput) {
 }
 </script>
 
+
+
+
+
+
+<!----------------Java Script Do Login---------------->
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const profileIcon = document.getElementById("profile-icon");
+            const profileDropdown = document.getElementById("profile-dropdown");
+            const logoutBtn = document.getElementById("logout-btn");
+
+            // Alterna a visibilidade do dropdown ao clicar no ícone do perfil
+            profileIcon.addEventListener("click", function (event) {
+                event.preventDefault();
+                profileDropdown.classList.toggle("show");
+            });
+
+            // Fecha o dropdown se clicar fora dele
+            document.addEventListener("click", function (event) {
+                if (!profileIcon.contains(event.target) && !profileDropdown.contains(event.target)) {
+                    profileDropdown.classList.remove("show");
+                }
+            });
+
+            // Aplica o estilo diretamente no JavaScript
+            if (logoutBtn) {
+                logoutBtn.style.backgroundColor = "red";
+                logoutBtn.style.color = "white";
+                logoutBtn.style.border = "none";
+                logoutBtn.style.padding = "10px";
+                logoutBtn.style.cursor = "pointer";
+                logoutBtn.style.width = "100%";
+                logoutBtn.style.borderRadius = "5px";
+                logoutBtn.style.fontWeight = "bold";
+                logoutBtn.style.textAlign = "center";
+
+                logoutBtn.addEventListener("mouseover", function () {
+                    logoutBtn.style.backgroundColor = "darkred";
+                });
+
+                logoutBtn.addEventListener("mouseout", function () {
+                    logoutBtn.style.backgroundColor = "red";
+                });
+
+                // Logout ao clicar no botão
+                logoutBtn.addEventListener("click", function () {
+                    fetch("logout.php", { method: "POST" }) // Envia uma requisição para logout.php
+                        .then(() => {
+                            window.location.href = "login.php"; // Redireciona para a página de login
+                        })
+                        .catch(error => console.error("Erro ao fazer logout:", error));
+                });
+            }
+        });
+
+    </script>
+    
 <?php include('footer.php'); ?>
 </body>
 </html>

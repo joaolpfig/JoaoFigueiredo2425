@@ -1,6 +1,14 @@
 <?php 
 include("config.php");
 
+
+
+$idUtilizador = $_SESSION['id_utilizador'] ?? null;
+$totalItensCarrinho = contarItensCarrinho($idUtilizador);
+
+
+
+
 // Obter todas as marcas usando a função do config
 $marcas = buscarMarcasComProdutos($liga);
 ?>
@@ -33,19 +41,41 @@ $marcas = buscarMarcasComProdutos($liga);
       </nav>
 
       <div class="icons">
+
+
         <!-- Ícone de pesquisa -->
         <a href="#" id="search-icon">
           <img src="img/IMAGENS INDEX/pesquisa.png" alt="Pesquisa" class="icon-image">
         </a>
-        <!-- Ícone de carrinho -->
-        <a href="cart.php">
-          <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
-        </a>
+
+
+        <!-- Ícone do carrinho -->
+        <a href="cart.php" class="cart-container">
+                <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
+                <?php if ($totalItensCarrinho > 0): ?>
+                    <span class="cart-counter"><?php echo $totalItensCarrinho; ?></span>
+                <?php endif; ?>
+            </a>
+
+
         <!-- Ícone de perfil -->
-        <a href="login.php">
-          <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
-        </a>
-      </div>
+        <div class="profile-container">
+                <a href="#" id="profile-icon">
+                    <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
+                </a>
+                <div class="profile-container">
+                    <div class="profile-dropdown" id="profile-dropdown">
+                        <?php if (isset($_SESSION['nome_utilizador'])): ?>
+                            <p>Hello, <?php echo htmlspecialchars($_SESSION['nome_utilizador']); ?></p>
+                            <button id="logout-btn" class="logout-button">Logout</button>
+                        <?php else: ?>
+                            <a href="login.php">Sign In</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+
 
       <!-- Modal de Pesquisa -->
       <div id="search-modal">
@@ -54,7 +84,18 @@ $marcas = buscarMarcasComProdutos($liga);
           <input type="text" id="search-input" placeholder="Search products..." class="search-input">
           <button id="search-button" class="search-button">Search</button>
         </div>
+        <div id="search-modal" class="search-modal">
+    <div class="search-box">
+        <button id="close-modal" class="close-btn">×</button> <!-- Botão de fechar no canto -->
+        <input type="text" id="search-input" placeholder="Search products..." class="search-input">
+        <button id="search-button" class="search-button">Search</button>
+    </div>
       </div>
+
+
+      
+</div>
+
     </header>
 
     <div class="brands-header">
@@ -90,72 +131,58 @@ $marcas = buscarMarcasComProdutos($liga);
   
 </body>
 </html>
-
-  <script>
-    
-
-    if (searchIcon && searchModal && closeModal) {
-      // Mostrar o modal ao clicar no ícone de pesquisa
-      searchIcon.addEventListener("click", (e) => {
-        e.preventDefault();
-        searchModal.classList.add("active");
-      });
-
-      // Fechar o modal ao clicar no botão de fechar
-      closeModal.addEventListener("click", () => {
-        searchModal.classList.remove("active");
-      });
-    } else {
-      console.error("Elementos necessários para o modal de pesquisa não foram encontrados.");
-    }
-  </script>
-
-
-
-
-
-
-
+  
 
 <!----------------Java Script Do Pesquisar---------------->
 <script>
-// Seleção de elementos
-const searchIcon = document.getElementById("search-icon");
-const searchModal = document.getElementById("search-modal");
-const closeModal = document.getElementById("close-modal");
-const searchInput = document.getElementById("search-input");
-const suggestionList = document.createElement("ul"); // Lista para sugestões
-const searchButton = document.getElementById("search-button");
-const productsLabel = document.createElement("p");
+document.addEventListener("DOMContentLoaded", function () {
+    // Captura os elementos do DOM
+    const searchIcon = document.getElementById("search-icon");
+    const searchModal = document.getElementById("search-modal");
+    const closeModal = document.getElementById("close-modal");
+    const searchInput = document.getElementById("search-input");
+    const searchButton = document.getElementById("search-button");
 
-// Adiciona elementos dinâmicos ao modal
-productsLabel.id = "products-label";
-productsLabel.textContent = "Products";
-productsLabel.style.display = "none";
-suggestionList.id = "suggestion-list";
-suggestionList.style.marginTop = "10px";
-suggestionList.style.listStyle = "none";
-suggestionList.style.maxHeight = "200px"; // Limita a altura
-suggestionList.style.overflowY = "scroll"; // Adiciona scroll
-searchInput.insertAdjacentElement("afterend", productsLabel);
-productsLabel.insertAdjacentElement("afterend", suggestionList);
+    // Verifica se os elementos existem antes de adicionar eventos
+    if (!searchIcon || !searchModal || !closeModal || !searchInput || !searchButton) {
+        console.error("Erro: Um ou mais elementos do modal de pesquisa não foram encontrados.");
+        return;
+    }
 
-// Verifica se elementos críticos existem antes de adicionar eventos
-if (searchIcon && searchModal && closeModal && searchInput) {
-    // Mostrar o modal ao clicar no ícone de pesquisa
+    console.log(" Todos os elementos foram encontrados corretamente.");
+
+    // Criar elementos dinâmicos
+    const suggestionList = document.createElement("ul");
+    const productsLabel = document.createElement("p");
+
+    // Configurar estilos para a lista de sugestões
+    productsLabel.id = "products-label";
+    productsLabel.textContent = "Products";
+    productsLabel.style.display = "none";
+    suggestionList.id = "suggestion-list";
+    suggestionList.style.marginTop = "10px";
+    suggestionList.style.listStyle = "none";
+    suggestionList.style.maxHeight = "200px";
+    suggestionList.style.overflowY = "scroll";
+
+    // Adicionar os elementos ao DOM
+    searchInput.insertAdjacentElement("afterend", productsLabel);
+    productsLabel.insertAdjacentElement("afterend", suggestionList);
+
+    // 🔍 Evento para abrir o modal de pesquisa
     searchIcon.addEventListener("click", (e) => {
         e.preventDefault();
-        console.log("Ícone de pesquisa clicado!");
-        searchModal.classList.add("active"); // Adiciona a classe active
+        console.log("🔍 Ícone de pesquisa clicado!");
+        searchModal.classList.add("active");
     });
 
-    // Fechar o modal ao clicar no botão de fechar
+    // Evento para fechar o modal ao clicar no botão vermelho "X"
     closeModal.addEventListener("click", () => {
-        searchModal.classList.remove("active"); // Remove a classe active
-        console.log("Modal fechado!");
+        searchModal.classList.remove("active");
+        console.log("❌ Modal fechado pelo botão vermelho!");
     });
 
-    // Mostrar sugestões enquanto escreves
+    // Evento para pesquisa ao escrever no input
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.trim();
 
@@ -163,11 +190,11 @@ if (searchIcon && searchModal && closeModal && searchInput) {
             fetch(`/JoaoFigueiredo2425/search.php?query=${encodeURIComponent(query)}`)
                 .then((response) => response.json())
                 .then((data) => {
-                    console.log(data); // Verificar a estrutura do objeto retornado
-                    suggestionList.innerHTML = ""; // Limpa sugestões antigas
+                    console.log("Dados recebidos:", data);
+                    suggestionList.innerHTML = "";
 
                     if (data.length > 0) {
-                        productsLabel.style.display = "block"; // Mostra o rótulo "Produtos"
+                        productsLabel.style.display = "block";
                         data.forEach((product) => {
                             const li = document.createElement("li");
                             li.style.display = "flex";
@@ -188,27 +215,25 @@ if (searchIcon && searchModal && closeModal && searchInput) {
                             suggestionList.appendChild(li);
                         });
                     } else {
-                        productsLabel.style.display = "none"; // Esconde o rótulo
+                        productsLabel.style.display = "none";
                     }
                 })
-                .catch((error) => console.error("Erro ao buscar produtos:", error));
+                .catch((error) => console.error(" Erro ao buscar produtos:", error));
         } else {
-            suggestionList.innerHTML = ""; // Limpa sugestões
+            suggestionList.innerHTML = "";
             productsLabel.style.display = "none";
         }
     });
 
-    // Redirecionar para a página de resultados ao clicar em "Pesquisar"
+    // 🔍 Evento para o botão de pesquisa
     searchButton.addEventListener("click", () => {
         const query = searchInput.value.trim();
-        console.log("Botão 'Pesquisar' clicado!"); // Verifica se o evento é acionado
-        console.log("Termo de pesquisa:", query); // Mostra o termo de pesquisa no console
         if (query) {
             window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
         }
     });
 
-    // Redirecionar para a página de resultados ao pressionar "Enter"
+    // 🔍 Evento para pressionar "Enter"
     searchInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
             const query = searchInput.value.trim();
@@ -217,37 +242,64 @@ if (searchIcon && searchModal && closeModal && searchInput) {
             }
         }
     });
-} else {
-    console.error("Elementos necessários para o modal de pesquisa não foram encontrados.");
-}
+});
 </script>
 
 
 
-
-
+<!----------------Java Script Do Login---------------->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-    const accordionButtons = document.querySelectorAll(".accordion-button");
+        document.addEventListener("DOMContentLoaded", function () {
+            const profileIcon = document.getElementById("profile-icon");
+            const profileDropdown = document.getElementById("profile-dropdown");
+            const logoutBtn = document.getElementById("logout-btn");
 
-    accordionButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            const content = button.nextElementSibling;
+            // Alterna a visibilidade do dropdown ao clicar no ícone do perfil
+            profileIcon.addEventListener("click", function (event) {
+                event.preventDefault();
+                profileDropdown.classList.toggle("show");
+            });
 
-            // Fechar outros accordions
-            document.querySelectorAll(".accordion-content").forEach(item => {
-                if (item !== content) {
-                    item.style.display = "none";
+            // Fecha o dropdown se clicar fora dele
+            document.addEventListener("click", function (event) {
+                if (!profileIcon.contains(event.target) && !profileDropdown.contains(event.target)) {
+                    profileDropdown.classList.remove("show");
                 }
             });
 
-            // Alternar visibilidade
-            content.style.display = content.style.display === "block" ? "none" : "block";
-        });
-    });
-});
+            // Aplica o estilo diretamente no JavaScript
+            if (logoutBtn) {
+                logoutBtn.style.backgroundColor = "red";
+                logoutBtn.style.color = "white";
+                logoutBtn.style.border = "none";
+                logoutBtn.style.padding = "10px";
+                logoutBtn.style.cursor = "pointer";
+                logoutBtn.style.width = "100%";
+                logoutBtn.style.borderRadius = "5px";
+                logoutBtn.style.fontWeight = "bold";
+                logoutBtn.style.textAlign = "center";
 
-</script>
+                logoutBtn.addEventListener("mouseover", function () {
+                    logoutBtn.style.backgroundColor = "darkred";
+                });
+
+                logoutBtn.addEventListener("mouseout", function () {
+                    logoutBtn.style.backgroundColor = "red";
+                });
+
+                // Logout ao clicar no botão
+                logoutBtn.addEventListener("click", function () {
+                    fetch("logout.php", { method: "POST" }) // Envia uma requisição para logout.php
+                        .then(() => {
+                            window.location.href = "login.php"; // Redireciona para a página de login
+                        })
+                        .catch(error => console.error("Erro ao fazer logout:", error));
+                });
+            }
+        });
+
+    </script>
+
 
 
 <?php include('footer.php'); ?>

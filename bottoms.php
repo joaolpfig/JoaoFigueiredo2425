@@ -1,6 +1,13 @@
 <?php
 include("config.php");
 
+
+
+$idUtilizador = $_SESSION['id_utilizador'] ?? null;
+$totalItensCarrinho = contarItensCarrinho($idUtilizador);
+
+
+
 // Configuração da paginação
 $produtos_por_pagina = 12;
 $pagina_atual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -43,19 +50,45 @@ $total_paginas = ceil($total_produtos / $produtos_por_pagina);
         <a href="accesories.php">ACCESORIES</a>
       </nav>
       <div class="icons">
+
+
+
+
       <!-- Ícone de pesquisa -->
   <a href="#" id="search-icon">
     <img src="img/IMAGENS INDEX/pesquisa.png" alt="Pesquisa" class="icon-image">
   </a>
-  <!-- Ícone de carrinho -->
-  <a href="cart.php">
-    <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
-  </a>
+
+
+
+
+  <!-- Ícone do carrinho -->
+            <a href="cart.php" class="cart-container">
+                <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
+                <?php if ($totalItensCarrinho > 0): ?>
+                    <span class="cart-counter"><?php echo $totalItensCarrinho; ?></span>
+                <?php endif; ?>
+            </a>
+
+
+
+
   <!-- Ícone de perfil -->
-  <a href="login.php">
-    <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
-  </a>
-</div>
+  <div class="profile-container">
+                <a href="#" id="profile-icon">
+                    <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
+                </a>
+                <div class="profile-container">
+                    <div class="profile-dropdown" id="profile-dropdown">
+                        <?php if (isset($_SESSION['nome_utilizador'])): ?>
+                            <p>Hello, <?php echo htmlspecialchars($_SESSION['nome_utilizador']); ?></p>
+                            <button id="logout-btn" class="logout-button">Logout</button>
+                        <?php else: ?>
+                            <a href="login.php">Sign In</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
 
 <!-- Modal de Pesquisa -->
 <div id="search-modal">
@@ -68,18 +101,26 @@ $total_paginas = ceil($total_produtos / $produtos_por_pagina);
     </header>   
 
     <!-- Product Listing -->
-    <div class="products">
-      <?php foreach ($produtos as $produto): ?>
-        <div class="product" data-caminho-imagem-hover="<?php echo htmlspecialchars($produto['caminho_imagem_hover']); ?>">
-          <a href="produto.php?id_produtos=<?php echo htmlspecialchars($produto['id_produtos']); ?>">
-            <img class="product-image" src="<?php echo htmlspecialchars($produto['caminho_imagem']); ?>" 
-                 alt="<?php echo htmlspecialchars($produto['nome_produto']); ?>">
-          </a>
-          <div class="product-title"><?php echo htmlspecialchars($produto['nome_produto']); ?></div>
-          <div class="product-brand"><?php echo htmlspecialchars($produto['nome_marca']) ?: 'Marca não definida'; ?></div>
-          <div class="product-price"><?php echo number_format($produto['preco'], 2, ',', ' ') . ' €'; ?></div>
+<div class="products">
+    <?php foreach ($produtos as $produto): ?>
+        <div class="product"
+            caminho_imagem_hover="<?php echo htmlspecialchars($produto['caminho_imagem_hover']);?>">  
+            
+            <?php if ($produto['quantidade'] == 0): ?>
+                <span class="sold-out-label-list">Sold Out</span>
+            <?php endif; ?>
+
+            <a href="produto.php?id_produtos=<?php echo htmlspecialchars($produto['id_produtos']); ?>">
+                <img src="<?php echo htmlspecialchars($produto['caminho_imagem']);?>"
+                alt="<?php echo htmlspecialchars($produto['nome_produto']);?>">
+            </a>
+            <div class="product-title"><?php echo htmlspecialchars($produto['nome_produto']);?></div>
+            <div class="product-brand"><?php echo htmlspecialchars($produto['nome_marcas']);?></div>
+            <div class="product-price"><?php echo number_format($produto['preco'], 2, ',', ' ') . ' €';?></div>
         </div>
-      <?php endforeach; ?>
+    
+    <?php endforeach; ?>
+</div>
 
       <!-- Paginação -->
       <div class="pagination">
@@ -93,25 +134,18 @@ $total_paginas = ceil($total_produtos / $produtos_por_pagina);
   </div>
 
   <script>
-    // Selecionando todos os produtos
-    const items = document.querySelectorAll('.product');
-
-    items.forEach(item => {
-        const img = item.querySelector('img'); // A imagem do produto
-        const caminhoImagemOriginal = img.src; // Caminho da imagem original
-        const caminhoImagemAlternativa = item.getAttribute('data-caminho-imagem-hover'); // Caminho da imagem de hover
-
-        // Quando o mouse passar por cima do produto
-        item.addEventListener('mouseenter', () => {
-            img.src = caminhoImagemAlternativa; // Troca para a imagem de hover
+        const items = document.querySelectorAll('.product');
+        items.forEach(item => {
+            const caminhoImagemOriginal = item.querySelector('img').src;
+            const caminhoImagemAlternativa = item.getAttribute('caminho_imagem_hover');
+            item.addEventListener('mouseover', () => {
+                item.querySelector('img').src = caminhoImagemAlternativa;
+            });
+            item.addEventListener('mouseout', () => {
+                item.querySelector('img').src = caminhoImagemOriginal;
+            });
         });
-
-        // Quando o mouse sair do produto
-        item.addEventListener('mouseleave', () => {
-            img.src = caminhoImagemOriginal; // Retorna para a imagem original
-        });
-    });
-  </script>
+            </script>
 
 
 
@@ -221,6 +255,66 @@ if (searchIcon && searchModal && closeModal && searchInput) {
     console.error("Elementos necessários para o modal de pesquisa não foram encontrados.");
 }
 </script>
+
+
+
+
+
+
+
+<!----------------Java Script Do Login---------------->
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const profileIcon = document.getElementById("profile-icon");
+            const profileDropdown = document.getElementById("profile-dropdown");
+            const logoutBtn = document.getElementById("logout-btn");
+
+            // Alterna a visibilidade do dropdown ao clicar no ícone do perfil
+            profileIcon.addEventListener("click", function (event) {
+                event.preventDefault();
+                profileDropdown.classList.toggle("show");
+            });
+
+            // Fecha o dropdown se clicar fora dele
+            document.addEventListener("click", function (event) {
+                if (!profileIcon.contains(event.target) && !profileDropdown.contains(event.target)) {
+                    profileDropdown.classList.remove("show");
+                }
+            });
+
+            // Aplica o estilo diretamente no JavaScript
+            if (logoutBtn) {
+                logoutBtn.style.backgroundColor = "red";
+                logoutBtn.style.color = "white";
+                logoutBtn.style.border = "none";
+                logoutBtn.style.padding = "10px";
+                logoutBtn.style.cursor = "pointer";
+                logoutBtn.style.width = "100%";
+                logoutBtn.style.borderRadius = "5px";
+                logoutBtn.style.fontWeight = "bold";
+                logoutBtn.style.textAlign = "center";
+
+                logoutBtn.addEventListener("mouseover", function () {
+                    logoutBtn.style.backgroundColor = "darkred";
+                });
+
+                logoutBtn.addEventListener("mouseout", function () {
+                    logoutBtn.style.backgroundColor = "red";
+                });
+
+                // Logout ao clicar no botão
+                logoutBtn.addEventListener("click", function () {
+                    fetch("logout.php", { method: "POST" }) // Envia uma requisição para logout.php
+                        .then(() => {
+                            window.location.href = "login.php"; // Redireciona para a página de login
+                        })
+                        .catch(error => console.error("Erro ao fazer logout:", error));
+                });
+            }
+        });
+
+    </script>
+
 
 
 <?php include('footer.php'); ?>

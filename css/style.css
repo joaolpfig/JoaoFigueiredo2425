@@ -18,7 +18,7 @@ body {
 /* Cabeçalho */
 /* Cabeçalho */
 .header {
-  position: absolute;
+  position: sticky !important;
   top: 0;
   left: 0;
   width: 100%;
@@ -29,7 +29,7 @@ body {
   justify-content: space-between; /* Espaço igual entre os itens */
   align-items: center; /* Alinhamento vertical central */
   z-index: 1000; /* Garante que o cabeçalho está acima de todos os outros elementos */
-  margin-bottom: 0; /* Remove o espaço abaixo do cabeçalho */
+  margin-bottom: 0px; /* Remove o espaço abaixo do cabeçalho */
 }
 
 main {
@@ -121,7 +121,9 @@ main {
 .navbar a:hover::before {
   width: 100%;
 }
-/* Modal de pesquisa */
+
+
+/* ---------------------------Modal de pesquisa------------------------------------ */
 /* Modal de Pesquisa */
 #search-modal {
   display: none; /* Oculto por padrão */
@@ -184,6 +186,37 @@ main {
 .search-box .search-button:hover {
   background: #333;
 }
+
+/* Botão vermelho para fechar dentro do modal */
+.search-box .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: red;
+  color: white;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+.search-box .close-btn:hover {
+  background: darkred;
+}
+
+
+
+
+
+
+
 /* Secção de destaque (Hero) */
 /* Previne o scroll horizontal */
 html, body {
@@ -207,7 +240,7 @@ html, body {
   width: 100%; /* A imagem ocupa toda a largura da página */
   height: auto; /* Mantém a proporção da imagem */
   display: block; /* Garante que as imagens não geram espaço extra */
-  margin: 0; /* Remove qualquer margem */
+  margin: 0 !important; /* Remove qualquer margem */
 }
 
 .hero .overlay {
@@ -364,28 +397,29 @@ html, body {
 
 
 
+
 /*------------------------PAGINA DO ABOUT US------------------------*/
+
 .features-section {
-  margin-top: 100px; /* Adiciona espaçamento apenas na secção abaixo do header */
+  margin-top: 100px;
   display: flex;
-  justify-content: center; /* Centraliza os itens horizontalmente */
-  align-items: center; /* Centraliza os itens verticalmente */
-  flex-wrap: wrap; /* Permite quebra de linha em ecrãs menores */
-  gap: 40px; /* Espaçamento entre os itens */
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px;
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
-  text-align: center; /* Centraliza o texto */
+  text-align: center;
 }
 
-
 .feature {
-  flex: 0 1 200px; /* Largura fixa e ajustável */
-  margin: 0; /* Remove margens extras */
+  flex: 0 1 200px;
+  margin: 0;
 }
 
 .feature-icon {
-  width: 50px; /* Tamanho do ícone */
+  width: 50px;
   height: auto;
   margin-bottom: 10px;
 }
@@ -402,13 +436,12 @@ html, body {
   color: #666;
 }
 
-
-
+/* Secção de informações */
 .info-section {
   text-align: center;
-  margin: 100px auto 50px; /* Adicione um espaçamento superior */
+  margin: 80px auto 50px;
   max-width: 800px;
-  padding-top: 20px; /* Espaçamento adicional se necessário */
+  padding-top: 20px;
 }
 
 .info-title {
@@ -416,18 +449,29 @@ html, body {
   font-weight: 700;
   margin-bottom: 20px;
 }
+
+/* Acordeão */
 .accordion {
   margin: 0 auto;
   max-width: 800px;
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
+/* Itens do acordeão */
 .accordion-item {
+  width: 100%;
   border-bottom: 1px solid #ddd;
+  position: relative; /* Mantém os itens no mesmo lugar */
+  min-height: 60px; /* Evita movimentação ao abrir */
 }
 
+/* Botão do acordeão */
 .accordion-button {
   width: 100%;
   background-color: #f9f9f9;
@@ -444,28 +488,44 @@ html, body {
   transition: background-color 0.3s;
 }
 
+/* Efeito hover */
 .accordion-button:hover {
   background-color: #f1f1f1;
 }
 
+/* Conteúdo do acordeão */
 .accordion-content {
-  display: none;
-  padding: 15px 20px;
+  overflow: hidden;
+  height: 0;
+  transition: height 0.3s ease-out;
   font-size: 16px;
   color: #333;
   background-color: #fff;
+  text-align: left;
+  padding: 0 20px;
 }
 
+/* Exibir conteúdo quando ativo */
 .accordion-item.active .accordion-content {
-  display: block; /* Exibe o conteúdo quando ativo */
+  height: auto; /* Expande sem movimentar o restante */
+  padding: 15px 20px;
 }
 
+/* Ícone rotacionando quando aberto */
 .accordion-item.active .icon {
-  transform: rotate(45deg); /* Ícone de "+" vira "x" */
+  transform: rotate(45deg);
   transition: transform 0.3s ease;
 }
 
-
+/* Mantém o container estático */
+.accordion-container {
+  margin-bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 400px; /* Garante que a altura não mude */
+}
 
 /*------------------------PAGINA DO LISTAR------------------------*/
 /* Reset de estilos para garantir consistência */
@@ -495,11 +555,12 @@ body {
   justify-content: flex-start; /* Alinha os produtos à esquerda */
   gap: 20px; /* Espaçamento uniforme entre os produtos */
   padding: 20px;
-  margin-top: 100px; /* Espaço entre os produtos e o header */
+  margin-top: 20px; /* Espaço entre os produtos e o header */
 }
 
 .product {
   border: 1px solid #eaeaea !important;
+  position: relative; /* Garante que o selo fique posicionado dentro do produto */
   text-align: center;
   border: 1px solid #eaeaea;
   border-radius: 8px;
@@ -552,6 +613,22 @@ body {
   margin: 5px 0;
 }
 
+
+
+.sold-out-label-list {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: red;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 5px 12px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
 .pagination {
   display: flex; /* Torna a página flexível */
   justify-content: center; /* Centraliza horizontalmente */
@@ -599,61 +676,42 @@ body {
     border: 1px solid #ddd;
     border-radius: 8px;
     flex-wrap: nowrap;
-    margin-top: 100px; /* Adiciona margem superior para afastar do header */
+
   }
 
-  /* Product Image Slider */
-  .slider-container {
-    flex: 2;
-    min-width: 400px; /* Garante que o slider tenha pelo menos 400px de largura */
-    max-width: 60%; /* Limita a largura máxima do slider */
-    position: relative;
-    height: 500px; /* Aumenta a altura do slider */
-  }
-
-  .slider {
+  /* Ajuste do container do slider */
+.slider-container {
     position: relative;
     width: 100%;
-    height: calc(100% - 40px); /* Deixa um espaço de 40px para os pontos */
+    max-width: 500px;
+    margin: auto;
     overflow: hidden;
-    border-radius: 15px;
-  }
+}
 
-  .slider .list {
+/* Slider */
+.slider {
     display: flex;
     transition: transform 0.5s ease-in-out;
     width: 100%;
-  }
+}
 
-  .slider .item {
-    min-width: 100%; /* Cada imagem ocupa 100% da largura do slider */
-    height: 100%; /* A altura é igual à altura do slider */
-    display: flex;
-    justify-content: center; /* Centraliza as imagens */
-    align-items: center; /* Centraliza as imagens verticalmente */
-  }
+.slide {
+    min-width: 100%;
+    transition: opacity 0.5s ease-in-out;
+}
 
-  .slider .item img {
-    width: 100%; /* A imagem ocupa toda a largura disponível */
-    height: 400px; /* Ajusta a altura automaticamente para manter a proporção */
-    object-fit: contain; /* Garante que a imagem se ajusta sem cortar */
-    max-width: 100%; /* Garante que a imagem não ultrapasse o container */
-    max-height: 100%; /* Garante que a imagem não ultrapasse o container */
-    border-radius: 15px; /* Bordas arredondadas */
-  }
+.slide img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 5px;
+}
 
-  /* Botões de navegação */
-  .buttons {
+/* Botões de navegação */
+.prev, .next {
     position: absolute;
     top: 50%;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
     transform: translateY(-50%);
-    z-index: 10;
-  }
-
-  #prev, #next {
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
     border: none;
@@ -661,35 +719,40 @@ body {
     cursor: pointer;
     font-size: 20px;
     border-radius: 50%;
-    transition: background-color 0.3s, transform 0.3s;
-  }
+    transition: background 0.3s ease;
+}
 
-  #prev:hover, #next:hover {
+.prev:hover, .next:hover {
     background-color: rgba(0, 0, 0, 0.8);
-    transform: scale(1.2);
-  }
+}
 
-  /* Pontos de navegação */
-  .dots {
+.prev { left: 10px; }
+.next { right: 10px; }
+
+/* 🔥 Aqui garantimos que os dots fiquem ABAIXO da imagem */
+.dots-container {
+    text-align: center;
+    margin-top: 15px; /* Aumenta o espaço entre a imagem e os dots */
     display: flex;
     justify-content: center;
-    margin-top: 10px;
-    padding: 0;
-    list-style: none;
-  }
+    gap: 8px;
+}
 
-  .dots li {
-    width: 10px;
-    height: 10px;
-    margin: 0 5px;
+/* Dots ajustados */
+.dot {
+    width: 12px;
+    height: 12px;
     background-color: #bbb;
     border-radius: 50%;
     cursor: pointer;
-  }
+    transition: background 0.3s;
+}
 
-  .dots li.active {
-    background-color: #000000;
-  }
+.dot.active {
+    background-color: black;
+}
+
+
 
   /* Product Description Container */
   .descricao-container {
@@ -730,27 +793,33 @@ body {
     font-weight: bold;
     color: #000000;
   }
-/* Botão ativo (Adicionar ao Carrinho) */
+
+
+ /* 🔹 BOTÃO: Adicionar ao Carrinho (Ativo) */
 .add-to-cart {
-  margin-top: 20px;
-  padding: 15px 30px;
+  display: inline-block;
+  width: 100%; /* Mantém o mesmo tamanho para todos os botões */
+  max-width: 250px; /* Define um tamanho máximo */
+  padding: 15px;
   font-size: 18px;
   font-weight: 700;
-  color: white;
-  background-color: #007bff; /* Azul */
+  text-align: center;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Animações */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: #007bff; /* Azul padrão */
+  color: white;
 }
 
+/* 🖱️ Efeito Hover: Adicionar ao Carrinho */
 .add-to-cart:hover {
   background-color: #0056b3; /* Azul mais escuro */
-  transform: scale(1.05); /* Aumenta levemente o botão */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Adiciona sombra */
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
+/* 🔒 BOTÃO: Produto já adicionado ao carrinho */
 /* Botão desativado (já adicionado ao carrinho) */
 .add-to-cart[disabled] {
   background-color: #ccc; /* Cinza */
@@ -759,6 +828,30 @@ body {
   border: none;
   box-shadow: none; /* Remove sombra */
 }
+
+/* ❌ BOTÃO: Produto Esgotado */
+.add-to-cart.sold-out {
+  background: red !important;
+  color: white;
+  cursor: not-allowed;
+  font-weight: bold;
+  box-shadow: none;
+}
+
+/* 🏷️ ETIQUETA: "ESGOTADO" sobre a imagem do produto */
+.sold-out-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: red;
+  color: white;
+  padding: 5px 10px;
+  font-weight: bold;
+  border-radius: 5px;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
 
 
   /* Responsividade para telas pequenas */
@@ -899,7 +992,7 @@ main {
 .footer {
   background-color: #000;
   color: #fff;
-  padding: 20px 0;
+  padding: 50px 0;
   text-align: center;
   font-family: 'Poppins', sans-serif;
 }
@@ -947,9 +1040,12 @@ main {
   font-size: 14px;
 }
 
-/*------------------------CSS DO LOGIN------------------------*/
-/*---------------------- LOGIN FORM ----------------------*/
 
+
+
+
+
+/* #region CSS DO LOGIN-------------------------------------*/
 .login-container {
   max-width: 420px; /* Aumentei um pouco para dar mais espaço */
   margin: 50px auto;
@@ -1054,19 +1150,20 @@ main {
     padding: 14px;
   }
 }
-
-
-
-
-/*------------------------ CSS DO SIGN UP ------------------------*/
+/* #endregion CSS DO LOGIN -------------------------------------*/
 
 .register-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh; /* Garante que ocupa toda a altura */
+  width: 100vw; /* Garante que ocupa toda a largura */
   background-color: #f8f9fa;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
+
 
 .register-box {
   background: white;
@@ -1096,7 +1193,6 @@ main {
   margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  box-sizing: border-box;
   font-size: 16px;
   transition: border 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
@@ -1107,18 +1203,16 @@ main {
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
-.password-container {
+.register-box .password-container {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
-.password-container input {
+.register-box .password-container input {
   width: 100%;
   padding-right: 45px;
 }
 
-.password-container img {
+.register-box .password-container img {
   position: absolute;
   right: 12px;
   top: 50%;
@@ -1130,10 +1224,11 @@ main {
   transition: opacity 0.3s ease-in-out;
 }
 
-.password-container img:hover {
+.register-box .password-container img:hover {
   opacity: 1;
 }
 
+/* ----------- Botão de Criar Conta ----------- */
 .register-box button {
   width: 100%;
   padding: 14px;
@@ -1158,8 +1253,8 @@ main {
   transform: scale(0.98);
 }
 
-/* Estilo das mensagens de erro e sucesso */
-.error-message {
+/* ----------- Mensagens de Erro e Sucesso ----------- */
+.register-box .error-message {
   color: #d9534f;
   background: #f8d7da;
   border-left: 5px solid #c9302c;
@@ -1169,7 +1264,7 @@ main {
   margin-bottom: 10px;
 }
 
-.success-message {
+.register-box .success-message {
   color: #28a745;
   background: #d4edda;
   border-left: 5px solid #218838;
@@ -1179,85 +1274,74 @@ main {
   margin-bottom: 10px;
 }
 
-/* Responsividade */
-@media (max-width: 480px) {
-  .register-box {
-    width: 90%;
-    padding: 20px;
-  }
-}
 
 
 
-/*------------------------CSS DO DROPDOWN------------------------*/
+/*#endregion*/
+
+
+
+
+/*------------------------CSS DO LOGOUT------------------------*/
 /* Container do dropdown */
-.profile-container {
-  position: relative;
-  display: inline-block;
-}
-
-/* Estilo do dropdown */
 .profile-dropdown {
   position: absolute;
-  top: 50px; /* Ajusta a posição abaixo do ícone */
-  left: 50%;
-  transform: translateX(-80%); /* Move mais para a esquerda */
-  width: 160px;
+  top: 70px; /* Move o container mais para baixo */
+  right: 0;
   background: white;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-  padding: 12px 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 8px; /* Diminui o padding */
+  width: 140px; /* Diminui a largura do container */
   display: none;
-  flex-direction: column;
-  align-items: center;
   text-align: center;
-  transition: all 0.3s ease-in-out;
 }
 
-/* Quando o dropdown é ativado */
 .profile-dropdown.show {
-  display: flex;
-}
-
-/* Estiliza o link do "Sign in" */
-.profile-dropdown a {
-  text-decoration: none;
-  font-size: 16px;
-  color: #007BFF;
-  font-weight: bold;
-  transition: color 0.3s ease-in-out;
-  white-space: nowrap;
-}
-
-/* Ajuste fino no alinhamento do texto */
-.profile-dropdown a span {
   display: block;
-  text-align: center;
 }
 
-/* Efeito hover */
-.profile-dropdown a:hover {
-  color: #0056b3;
+.profile-dropdown a {
+  display: flex;
+  justify-content: center; /* Centraliza o texto horizontalmente */
+  align-items: center; /* Centraliza o texto verticalmente */
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  padding: 10px 0; /* Ajusta a altura do botão */
+  border-radius: 6px;
+  transition: background 0.3s ease;
+  font-size: 14px; /* Ajusta o tamanho do texto */
+  width: 100%; /* Garante que ocupe toda a largura */
+  text-align: center;
+  background: rgba(0, 123, 255, 0.1);
 }
+
+.profile-dropdown a:hover {
+  background: rgba(0, 123, 255, 0.2);
+}
+
 
 
 
 
 /* ------------------------BACK BUTTON------------------------ */
 .back-button {
-  position: absolute;
-  top: 90px; /* Ajuste conforme necessário */
+  position: fixed; /* Mantém fixo para evitar deslocamento */
+  top: 100px; /* Define a posição correta abaixo do cabeçalho */
   left: 20px;
-  background: none;
+  background: #ac3f14;
   border: none;
   cursor: pointer;
   padding: 0;
+  z-index: 1001; /* Para garantir que fique acima de outros elementos */
   transition: transform 0.2s ease-in-out;
 }
 
 .back-button img {
-  width: 30px; /* Ajustado para um tamanho menor */
-  height: 30px;
+  width: 35px; /* Define um tamanho fixo adequado */
+  height: auto;
+  display: block;
   transition: transform 0.2s ease-in-out;
 }
 
@@ -1271,16 +1355,29 @@ main {
 
 
 
+
 /*------------------------CSS DO CARRINHO------------------------*/
 /* Estilo geral para o carrinho */
 main {
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px;
   max-width: 1200px;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   margin-top: 80px;
+}
+
+
+
+
+.cart-title{
+    width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+    border-radius: 10px;
+    height: max-content;
+
 }
 
 /* Estilo da tabela do carrinho */
@@ -1321,6 +1418,7 @@ tr:hover {
 /* Estilo do botão "Remover" */
 button {
   color: white;
+  background-color: red;
   border: none;
   padding: 8px 15px;
   border-radius: 4px;
@@ -1328,23 +1426,329 @@ button {
   transition: background-color 0.3s ease;
 }
 
+/* 🔥 Estiliza o ícone do carrinho e o contador de itens */
+.cart-container {
+  position: relative;
+  display: inline-block;
+}
+
+.cart-counter {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: red;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* 🔥 Estiliza o pop-up de notificação quando um produto é adicionado */
+.cart-notification {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 350px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  display: none; /* Oculto por padrão */
+  flex-direction: column;
+  align-items: center;
+  z-index: 1000;
+}
+
+.cart-notification img {
+  width: 70px;
+  height: 70px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.cart-notification p {
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.cart-notification-buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.cart-notification-buttons a {
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.view-cart {
+  background: black;
+  color: white;
+}
+
+.continue-shopping {
+  background: white;
+  border: 1px solid black;
+  color: black;
+}
+
+.view-cart:hover {
+  background: #333;
+}
+
+.continue-shopping:hover {
+  background: #f8f8f8;
+}
 
 
-/* Responsividade para dispositivos menores */
-@media screen and (max-width: 768px) {
-  main {
-    padding: 10px;
+
+.checkout-button-container {
+  text-align: right;
+  margin-top: 20px;
+}
+
+.checkout-button {
+  background-color: #28a745; /* verde */
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 16px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.checkout-button:hover {
+  background-color: #218838;
+}
+
+
+
+
+
+
+
+
+
+
+/* ------------------------ TÍTULOS ------------------------ */
+.profile-container h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #000;
+  padding-bottom: 5px;
+}
+
+/* ------------------------ DETALHES DA CONTA ------------------------ */
+.profile-info {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.profile-info p {
+  font-size: 16px;
+  margin: 5px 0;
+}
+
+.profile-info strong {
+  color: #333;
+}
+
+/* ------------------------ HISTÓRICO DE COMPRAS ------------------------ */
+.profile-orders {
+  margin-top: 30px;
+}
+
+.profile-orders table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.profile-orders th, .profile-orders td {
+  border: 1px solid #ddd;
+  text-align: left;
+  padding: 10px;
+}
+
+.profile-orders th {
+  background: #000;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.profile-orders tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.profile-orders tr:hover {
+  background: #f1f1f1;
+}
+
+/* ------------------------ RESPONSIVO ------------------------ */
+@media (max-width: 768px) {
+  .profile-container {
+      width: 95%;
+      padding: 15px;
   }
 
-  table {
-    font-size: 14px;
-  }
-
-  th, td {
-    padding: 8px;
-  }
-
-  .cart-total {
-    font-size: 20px;
+  .profile-orders th, .profile-orders td {
+      font-size: 14px;
+      padding: 8px;
   }
 }
+
+
+
+
+
+
+/* ------------------------ ESTILO DA PÁGINA DE SUCESSO ------------------------ */
+.success-container {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 600px;
+  margin: 60px auto; /* Centraliza horizontalmente */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: left;
+}
+
+.success-title {
+  color: #2e8b57;
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.success-summary {
+  border-top: 1px solid #222;
+  margin-top: 20px;
+  padding-top: 10px;
+}
+
+.success-back {
+  margin-top: 30px;
+  text-align: center; /* CENTRA o botão */
+}
+
+.back-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #c70e0e;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.back-button:hover {
+  background-color: #3e9145;
+}
+
+
+
+
+
+/* ====== Estilo para checkout.php ====== */
+.checkout-page {
+  max-width: 500px;
+  margin: 40px auto; /* Reduzido para subir */
+  background: #fff;
+  padding: 30px; /* Valor uniforme e equilibrado */
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  top: 40px; /* Ajuste fino */
+}
+
+
+.checkout-page h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 0;            /* evita empurrar para baixo */
+  margin-bottom: 30px;
+}
+
+.checkout-itens {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+
+.produto-checkout {
+  display: flex;
+  align-items: center;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.produto-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-right: 15px;
+}
+
+.produto-checkout .info {
+  flex: 1;
+  font-size: 15px;
+}
+
+.total-checkout {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  text-align: right;
+}
+
+.paypal-form {
+  text-align: center;
+}
+
+.paypal-button {
+  background-color: #0070ba;
+  color: white;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.paypal-button:hover {
+  background-color: #005c99;
+}
+
+
+
+
+
+
