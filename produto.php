@@ -15,6 +15,9 @@ $idUtilizador = $_SESSION['id_utilizador'] ?? null;
 $produtos = buscarProdutosPorId($idProduto);
 $imagensProduto = buscarImagensProduto($idProduto);
 $totalItensCarrinho = contarItensCarrinho($idUtilizador);
+// Busca as imagens secundárias (slider)
+$secondaryImages = buscarImagensProdutoCompleto($idProduto);
+
 
 if (!$produtos) {
     echo "<h1>Produto não encontrado.</h1>";
@@ -24,18 +27,18 @@ if (!$produtos) {
 // Verifica se o produto está esgotado
 $produtoEsgotado = ($produtos['quantidade'] <= 0);
 
-// Verifica se o produto já está no carrinho
+// Verificar se o produto já está no carrinho (MySQLi)
 $produtoNoCarrinho = false;
-if (isset($_SESSION['id_utilizador'])) {
-    $idUtilizador = $_SESSION['id_utilizador'];
-    $sqlCarrinho = "SELECT COUNT(*) AS total FROM carrinho WHERE id_utilizador = ? AND id_produtos = ?";
-    $stmtCarrinho = $liga->prepare($sqlCarrinho);
-    $stmtCarrinho->bind_param("ii", $idUtilizador, $idProduto);
-    $stmtCarrinho->execute();
-    $resultCarrinho = $stmtCarrinho->get_result()->fetch_assoc();
-    $produtoNoCarrinho = $resultCarrinho['total'] > 0;
-}
+$sqlCarrinho = "SELECT COUNT(*) AS total FROM carrinho WHERE id_utilizador = ? AND id_produtos = ?";
+$stmtCarrinho = mysqli_prepare($liga, $sqlCarrinho);
+mysqli_stmt_bind_param($stmtCarrinho, "ii", $idUtilizador, $idProduto);
+mysqli_stmt_execute($stmtCarrinho);
+$resCarrinho = mysqli_stmt_get_result($stmtCarrinho);
+$rowCarrinho = mysqli_fetch_assoc($resCarrinho);
+$produtoNoCarrinho = $rowCarrinho['total'] > 0;
+
 ?>
+
 
 
 
@@ -48,7 +51,7 @@ if (isset($_SESSION['id_utilizador'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlugVintage</title>
-    <link rel="icon" href="img/IMAGENS PARA O ICON SITE/plugicon.png" type="image/png">
+    <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">
     <link rel="stylesheet" href="./css/style.css"> <!-- Incluindo o CSS externo -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
@@ -120,19 +123,47 @@ if (isset($_SESSION['id_utilizador'])) {
         <div class="produto-layout">
             <!-- Slider de Imagens -->
             <div class="slider-container">
-                <?php if ($produtoEsgotado): ?>
-                    <div class="sold-out-label">ESGOTADO</div>
-                <?php endif; ?>
-                <div class="slider">
-                    <?php foreach ($imagensProduto as $imagem): ?>
-                        <div class="slide">
-                            <img src="<?php echo htmlspecialchars($imagem); ?>" alt="Imagem do Produto">
-                        </div>
-                    <?php endforeach; ?>
+    <?php if ($produtoEsgotado): ?>
+        <div class="sold-out-label">ESGOTADO</div>
+    <?php endif; ?>
+
+    <div class="slider">
+        <?php if (!empty($secondaryImages)): ?>
+            <?php foreach ($secondaryImages as $img): 
+                if (str_contains($img['imagens'], 'img/') || str_contains($img['imagens'], 'img\\')) {
+                    $caminhoImagem = str_replace('\\', '/', $img['imagens']);
+                } else {
+                    $caminhoImagem = 'img/imagens_produtos/' . $img['imagens'];
+                }
+            ?>
+                <div class="slide">
+                    <img src="<?= htmlspecialchars($caminhoImagem) ?>" alt="Product Image">
                 </div>
-                <button class="prev">&#10094;</button>
-                <button class="next">&#10095;</button>
-            </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p>No images available for slider.</p>
+        <?php endif; ?>
+    </div>
+
+    <div class="slider-dots"></div>
+
+    <button class="prev" aria-label="Slide anterior">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M15.41 16.58L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/>
+        </svg>
+    </button>
+
+    <button class="next" aria-label="Próximo slide">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M8.59 16.58L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
+        </svg>
+    </button>
+</div>
+
+
+
+
+
 
             <!-- Informações do Produto -->
             <div class="descricao-container">
@@ -187,55 +218,44 @@ if (isset($_SESSION['id_utilizador'])) {
 
 
     <!-- JavaScript do slider da página -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const slider = document.querySelector('.slider');
-            const slides = document.querySelectorAll('.slide');
-            const dots = document.querySelectorAll('.dot');
-            const prevButton = document.querySelector('.prev');
-            const nextButton = document.querySelector('.next');
-            let currentIndex = 0;
+   <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const slider = document.querySelector('.slider');
+    const slides = document.querySelectorAll('.slide');
+    const dotsContainer = document.querySelector('.slider-dots');
+    const prevButton = document.querySelector('.prev');
+    const nextButton = document.querySelector('.next');
+    let currentIndex = 0;
 
-            function showSlide(index) {
-                if (index < 0) {
-                    currentIndex = slides.length - 1;
-                } else if (index >= slides.length) {
-                    currentIndex = 0;
-                } else {
-                    currentIndex = index;
-                }
+    // Cria os dots dinamicamente
+    slides.forEach((_, index) => {
+        const dot = document.createElement('span');
+        dot.classList.add('dot');
+        if (index === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => showSlide(index));
+        dotsContainer.appendChild(dot);
+    });
+    const dots = document.querySelectorAll('.dot');
 
-                // Movendo o slider corretamente
-                slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+    function showSlide(index) {
+        currentIndex = (index + slides.length) % slides.length;
+        slider.style.transform = `translateX(-${currentIndex * 100}%)`;
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
+    }
 
-                // Atualiza os dots
-                dots.forEach((dot, i) => {
-                    dot.classList.toggle('active', i === currentIndex);
-                });
-            }
+    prevButton.addEventListener('click', () => showSlide(currentIndex - 1));
+    nextButton.addEventListener('click', () => showSlide(currentIndex + 1));
 
-            // Botões de navegação
-            prevButton.addEventListener('click', function () {
-                showSlide(currentIndex - 1);
-            });
+    // Esconder botões e dots se só houver uma imagem
+    if (slides.length <= 1) {
+        prevButton.style.display = "none";
+        nextButton.style.display = "none";
+        dotsContainer.style.display = "none";
+    }
 
-            nextButton.addEventListener('click', function () {
-                showSlide(currentIndex + 1);
-            });
-
-            // Eventos para os dots
-            dots.forEach((dot, index) => {
-                dot.addEventListener('click', function () {
-                    showSlide(index);
-                });
-            });
-
-            // Iniciar com o primeiro slide ativo
-            showSlide(currentIndex);
-        });
-
-
-    </script>
+    showSlide(currentIndex);
+});
+</script>
 
 
 
@@ -243,112 +263,118 @@ if (isset($_SESSION['id_utilizador'])) {
 
 
 
-    <!----------------Java Script Do Pesquisar---------------->
-    <script>
-        // Seleção de elementos
-        const searchIcon = document.getElementById("search-icon");
-        const searchModal = document.getElementById("search-modal");
-        const closeModal = document.getElementById("close-modal");
-        const searchInput = document.getElementById("search-input");
-        const suggestionList = document.createElement("ul"); // Lista para sugestões
-        const searchButton = document.getElementById("search-button");
-        const productsLabel = document.createElement("p");
 
-        // Adiciona elementos dinâmicos ao modal
-        productsLabel.id = "products-label";
-        productsLabel.textContent = "Products";
-        productsLabel.style.display = "none";
-        suggestionList.id = "suggestion-list";
-        suggestionList.style.marginTop = "10px";
-        suggestionList.style.listStyle = "none";
-        suggestionList.style.maxHeight = "200px"; // Limita a altura
-        suggestionList.style.overflowY = "scroll"; // Adiciona scroll
-        searchInput.insertAdjacentElement("afterend", productsLabel);
-        productsLabel.insertAdjacentElement("afterend", suggestionList);
+<!----------------Java Script Do Pesquisar---------------->
+<script>
+// Seleção de elementos
+const searchIcon = document.getElementById("search-icon");
+const searchModal = document.getElementById("search-modal");
+const closeModal = document.getElementById("close-modal");
+const searchInput = document.getElementById("search-input");
+const suggestionList = document.createElement("ul");
+const searchButton = document.getElementById("search-button");
+const productsLabel = document.createElement("p");
 
-        // Verifica se elementos críticos existem antes de adicionar eventos
-        if (searchIcon && searchModal && closeModal && searchInput) {
-            // Mostrar o modal ao clicar no ícone de pesquisa
-            searchIcon.addEventListener("click", (e) => {
-                e.preventDefault();
-                console.log("Ícone de pesquisa clicado!");
-                searchModal.classList.add("active"); // Adiciona a classe active
-            });
+// Estilo da lista
+productsLabel.id = "products-label";
+productsLabel.textContent = "Products";
+productsLabel.style.display = "none";
+suggestionList.id = "suggestion-list";
+suggestionList.style.marginTop = "10px";
+suggestionList.style.listStyle = "none";
+suggestionList.style.maxHeight = "200px";
+suggestionList.style.overflowY = "scroll";
+searchInput.insertAdjacentElement("afterend", productsLabel);
+productsLabel.insertAdjacentElement("afterend", suggestionList);
 
-            // Fechar o modal ao clicar no botão de fechar
-            closeModal.addEventListener("click", () => {
-                searchModal.classList.remove("active"); // Remove a classe active
-                console.log("Modal fechado!");
-            });
+if (searchIcon && searchModal && closeModal && searchInput) {
+    // Abrir modal
+    searchIcon.addEventListener("click", (e) => {
+        e.preventDefault();
+        searchModal.classList.add("active");
+    });
 
-            // Mostrar sugestões enquanto escreves
-            searchInput.addEventListener("input", () => {
-                const query = searchInput.value.trim();
+    // Fechar modal
+    closeModal.addEventListener("click", () => {
+        searchModal.classList.remove("active");
+    });
 
-                if (query.length > 1) {
-                    fetch(`/JoaoFigueiredo2425/search.php?query=${encodeURIComponent(query)}`)
-                        .then((response) => response.json())
-                        .then((data) => {
-                            console.log(data); // Verificar a estrutura do objeto retornado
-                            suggestionList.innerHTML = ""; // Limpa sugestões antigas
+    // Sugestões dinâmicas
+    searchInput.addEventListener("input", () => {
+        const query = searchInput.value.trim();
 
-                            if (data.length > 0) {
-                                productsLabel.style.display = "block"; // Mostra o rótulo "Produtos"
-                                data.forEach((product) => {
-                                    const li = document.createElement("li");
-                                    li.style.display = "flex";
-                                    li.style.alignItems = "center";
-                                    li.style.marginBottom = "5px";
+        if (query.length > 1) {
+            fetch(`/JoaoFigueiredo2425/search.php?query=${encodeURIComponent(query)}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    suggestionList.innerHTML = "";
+                    if (data.length > 0) {
+                        productsLabel.style.display = "block";
+                        data.forEach((product) => {
+                            const li = document.createElement("li");
+                            li.style.display = "flex";
+                            li.style.alignItems = "center";
+                            li.style.marginBottom = "5px";
 
-                                    li.innerHTML = `
-                                <img src="${product.caminho_imagem}" alt="${product.nome_produto}" style="width:50px;height:50px;margin-right:10px;">
-                                <span>${product.nome_produto}</span>
-                            `;
-                                    li.addEventListener("click", () => {
-                                        if (product.id_produtos) {
-                                            window.location.href = `/JoaoFigueiredo2425/produto.php?id_produtos=${product.id_produtos}`;
-                                        } else {
-                                            console.error("ID do produto não encontrado.");
-                                        }
-                                    });
-                                    suggestionList.appendChild(li);
-                                });
-                            } else {
-                                productsLabel.style.display = "none"; // Esconde o rótulo
+                            // Verifica quantidade
+                            let soldOutLabel = "";
+                            if (product.quantidade == 0) {
+                                soldOutLabel = `<span style="
+                                    background-color: red;
+                                    color: white;
+                                    font-weight: bold;
+                                    font-size: 10px;
+                                    padding: 2px 6px;
+                                    margin-left: 8px;
+                                    border-radius: 4px;
+                                ">SOLD OUT</span>`;
                             }
-                        })
-                        .catch((error) => console.error("Erro ao buscar produtos:", error));
-                } else {
-                    suggestionList.innerHTML = ""; // Limpa sugestões
-                    productsLabel.style.display = "none";
-                }
-            });
 
-            // Redirecionar para a página de resultados ao clicar em "Pesquisar"
-            searchButton.addEventListener("click", () => {
-                const query = searchInput.value.trim();
-                console.log("Botão 'Pesquisar' clicado!"); // Verifica se o evento é acionado
-                console.log("Termo de pesquisa:", query); // Mostra o termo de pesquisa no console
-                if (query) {
-                    window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
-                }
-            });
+                            li.innerHTML = `
+                                <img src="${product.caminho_imagem}" alt="${product.nome_produto}" style="width:50px;height:50px;margin-right:10px;">
+                                <span>${product.nome_produto}${soldOutLabel}</span>
+                            `;
 
-            // Redirecionar para a página de resultados ao pressionar "Enter"
-            searchInput.addEventListener("keypress", (e) => {
-                if (e.key === "Enter") {
-                    const query = searchInput.value.trim();
-                    if (query) {
-                        window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
+                            li.addEventListener("click", () => {
+                                if (product.id_produtos) {
+                                    window.location.href = `/JoaoFigueiredo2425/produto.php?id_produtos=${product.id_produtos}`;
+                                }
+                            });
+
+                            suggestionList.appendChild(li);
+                        });
+                    } else {
+                        productsLabel.style.display = "none";
                     }
-                }
-            });
+                })
+                .catch((error) => console.error("Erro ao buscar produtos:", error));
         } else {
-            console.error("Elementos necessários para o modal de pesquisa não foram encontrados.");
+            suggestionList.innerHTML = "";
+            productsLabel.style.display = "none";
         }
+    });
 
+    // Botão "Search"
+    searchButton.addEventListener("click", () => {
+        const query = searchInput.value.trim();
+        if (query) {
+            window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
+        }
+    });
 
-    </script>
+    // Enter para pesquisar
+    searchInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            const query = searchInput.value.trim();
+            if (query) {
+                window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
+            }
+        }
+    });
+} else {
+    console.error("Elementos do modal de pesquisa não encontrados.");
+}
+</script>
 
     <!----------------Java Script Do Login---------------->
     <script>
@@ -407,13 +433,6 @@ if (isset($_SESSION['id_utilizador'])) {
 
 
 
-
-
-
-    <!-- Popup do carrinho -->
-    <div id="cart-popup" class="cart-popup">
-        <div id="cart-items" class="cart-items"></div>
-    </div>
 
 </body>
 

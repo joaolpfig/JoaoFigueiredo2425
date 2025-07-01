@@ -101,7 +101,7 @@ $totalItensCarrinho = contarItensCarrinho($idUtilizador);
         </div>
         <div class="feature">
             <img src="img/IMAGENS ABOUT US/126482.png" alt="200+ Happy Customers" class="feature-icon">
-            <h3>200+ HAPPY CUSTOMERS</h3>
+            <h3>400+ HAPPY CUSTOMERS</h3>
             <p>Shop with confidence</p>
         </div>
     </section>
@@ -164,110 +164,117 @@ $totalItensCarrinho = contarItensCarrinho($idUtilizador);
     </section>
 
 
-    <!----------------Java Script Do Pesquisar---------------->
-    <script>
-        // Seleção de elementos
-        const searchIcon = document.getElementById("search-icon");
-        const searchModal = document.getElementById("search-modal");
-        const closeModal = document.getElementById("close-modal");
-        const searchInput = document.getElementById("search-input");
-        const suggestionList = document.createElement("ul"); // Lista para sugestões
-        const searchButton = document.getElementById("search-button");
-        const productsLabel = document.createElement("p");
+<!----------------Java Script Do Pesquisar---------------->
+<script>
+// Seleção de elementos
+const searchIcon = document.getElementById("search-icon");
+const searchModal = document.getElementById("search-modal");
+const closeModal = document.getElementById("close-modal");
+const searchInput = document.getElementById("search-input");
+const suggestionList = document.createElement("ul");
+const searchButton = document.getElementById("search-button");
+const productsLabel = document.createElement("p");
 
-        // Adiciona elementos dinâmicos ao modal
-        productsLabel.id = "products-label";
-        productsLabel.textContent = "Products";
-        productsLabel.style.display = "none";
-        suggestionList.id = "suggestion-list";
-        suggestionList.style.marginTop = "10px";
-        suggestionList.style.listStyle = "none";
-        suggestionList.style.maxHeight = "200px"; // Limita a altura
-        suggestionList.style.overflowY = "scroll"; // Adiciona scroll
-        searchInput.insertAdjacentElement("afterend", productsLabel);
-        productsLabel.insertAdjacentElement("afterend", suggestionList);
+// Estilo da lista
+productsLabel.id = "products-label";
+productsLabel.textContent = "Products";
+productsLabel.style.display = "none";
+suggestionList.id = "suggestion-list";
+suggestionList.style.marginTop = "10px";
+suggestionList.style.listStyle = "none";
+suggestionList.style.maxHeight = "200px";
+suggestionList.style.overflowY = "scroll";
+searchInput.insertAdjacentElement("afterend", productsLabel);
+productsLabel.insertAdjacentElement("afterend", suggestionList);
 
-        // Verifica se elementos críticos existem antes de adicionar eventos
-        if (searchIcon && searchModal && closeModal && searchInput) {
-            // Mostrar o modal ao clicar no ícone de pesquisa
-            searchIcon.addEventListener("click", (e) => {
-                e.preventDefault();
-                console.log("Ícone de pesquisa clicado!");
-                searchModal.classList.add("active"); // Adiciona a classe active
-            });
+if (searchIcon && searchModal && closeModal && searchInput) {
+    // Abrir modal
+    searchIcon.addEventListener("click", (e) => {
+        e.preventDefault();
+        searchModal.classList.add("active");
+    });
 
-            // Fechar o modal ao clicar no botão de fechar
-            closeModal.addEventListener("click", () => {
-                searchModal.classList.remove("active"); // Remove a classe active
-                console.log("Modal fechado!");
-            });
+    // Fechar modal
+    closeModal.addEventListener("click", () => {
+        searchModal.classList.remove("active");
+    });
 
-            // Mostrar sugestões enquanto escreves
-            searchInput.addEventListener("input", () => {
-                const query = searchInput.value.trim();
+    // Sugestões dinâmicas
+    searchInput.addEventListener("input", () => {
+        const query = searchInput.value.trim();
 
-                if (query.length > 1) {
-                    fetch(`/JoaoFigueiredo2425/search.php?query=${encodeURIComponent(query)}`)
-                        .then((response) => response.json())
-                        .then((data) => {
-                            console.log(data); // Verificar a estrutura do objeto retornado
-                            suggestionList.innerHTML = ""; // Limpa sugestões antigas
+        if (query.length > 1) {
+            fetch(`/JoaoFigueiredo2425/search.php?query=${encodeURIComponent(query)}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    suggestionList.innerHTML = "";
+                    if (data.length > 0) {
+                        productsLabel.style.display = "block";
+                        data.forEach((product) => {
+                            const li = document.createElement("li");
+                            li.style.display = "flex";
+                            li.style.alignItems = "center";
+                            li.style.marginBottom = "5px";
 
-                            if (data.length > 0) {
-                                productsLabel.style.display = "block"; // Mostra o rótulo "Produtos"
-                                data.forEach((product) => {
-                                    const li = document.createElement("li");
-                                    li.style.display = "flex";
-                                    li.style.alignItems = "center";
-                                    li.style.marginBottom = "5px";
-
-                                    li.innerHTML = `
-                                <img src="${product.caminho_imagem}" alt="${product.nome_produto}" style="width:50px;height:50px;margin-right:10px;">
-                                <span>${product.nome_produto}</span>
-                            `;
-                                    li.addEventListener("click", () => {
-                                        if (product.id_produtos) {
-                                            window.location.href = `/JoaoFigueiredo2425/produto.php?id_produtos=${product.id_produtos}`;
-                                        } else {
-                                            console.error("ID do produto não encontrado.");
-                                        }
-                                    });
-                                    suggestionList.appendChild(li);
-                                });
-                            } else {
-                                productsLabel.style.display = "none"; // Esconde o rótulo
+                            // Verifica quantidade
+                            let soldOutLabel = "";
+                            if (product.quantidade == 0) {
+                                soldOutLabel = `<span style="
+                                    background-color: red;
+                                    color: white;
+                                    font-weight: bold;
+                                    font-size: 10px;
+                                    padding: 2px 6px;
+                                    margin-left: 8px;
+                                    border-radius: 4px;
+                                ">SOLD OUT</span>`;
                             }
-                        })
-                        .catch((error) => console.error("Erro ao buscar produtos:", error));
-                } else {
-                    suggestionList.innerHTML = ""; // Limpa sugestões
-                    productsLabel.style.display = "none";
-                }
-            });
 
-            // Redirecionar para a página de resultados ao clicar em "Pesquisar"
-            searchButton.addEventListener("click", () => {
-                const query = searchInput.value.trim();
-                console.log("Botão 'Pesquisar' clicado!"); // Verifica se o evento é acionado
-                console.log("Termo de pesquisa:", query); // Mostra o termo de pesquisa no console
-                if (query) {
-                    window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
-                }
-            });
+                            li.innerHTML = `
+                                <img src="${product.caminho_imagem}" alt="${product.nome_produto}" style="width:50px;height:50px;margin-right:10px;">
+                                <span>${product.nome_produto}${soldOutLabel}</span>
+                            `;
 
-            // Redirecionar para a página de resultados ao pressionar "Enter"
-            searchInput.addEventListener("keypress", (e) => {
-                if (e.key === "Enter") {
-                    const query = searchInput.value.trim();
-                    if (query) {
-                        window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
+                            li.addEventListener("click", () => {
+                                if (product.id_produtos) {
+                                    window.location.href = `/JoaoFigueiredo2425/produto.php?id_produtos=${product.id_produtos}`;
+                                }
+                            });
+
+                            suggestionList.appendChild(li);
+                        });
+                    } else {
+                        productsLabel.style.display = "none";
                     }
-                }
-            });
+                })
+                .catch((error) => console.error("Erro ao buscar produtos:", error));
         } else {
-            console.error("Elementos necessários para o modal de pesquisa não foram encontrados.");
+            suggestionList.innerHTML = "";
+            productsLabel.style.display = "none";
         }
-    </script>
+    });
+
+    // Botão "Search"
+    searchButton.addEventListener("click", () => {
+        const query = searchInput.value.trim();
+        if (query) {
+            window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
+        }
+    });
+
+    // Enter para pesquisar
+    searchInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            const query = searchInput.value.trim();
+            if (query) {
+                window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
+            }
+        }
+    });
+} else {
+    console.error("Elementos do modal de pesquisa não encontrados.");
+}
+</script>
 
 
 

@@ -15,8 +15,8 @@
         </div>
         <div class="footer-section">
             <h4>Contacts</h4>
-            <p>Email: infoplugvintage@gmail.com</p>
-            <p>Phone: +351 123 456 789</p>
+            <p>Email: plugvintagept@gmail.com</p>
+            <p>Phone: +351 923 456 789</p>
         </div>
     </div>
     <div class="footer-bottom">

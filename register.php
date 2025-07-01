@@ -1,32 +1,29 @@
 <?php
-require_once 'config.php'; // Conexão com a base de dados
+session_start();
+require_once 'config.php';
+require_once 'email.php'; // Incluindo o arquivo do email.php
 $error = '';
-$success = '';
 
-// Verifica se a conexão está ativa
+// Verifica a conexão
 if (!$liga) {
-    die("Erro de conexão com a base de dados: " . mysqli_connect_error());
+    die("Database connection error: " . mysqli_connect_error());
 }
 
-// Verifica se o formulário foi submetido
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Corrigido para corresponder aos names do HTML
-    $nome = isset($_POST['name']) ? trim($_POST['name']) : '';
+    $nome = isset($_POST['full-name']) ? trim($_POST['full-name']) : '';
     $email = isset($_POST['email']) ? trim($_POST['email']) : '';
     $senha = isset($_POST['password']) ? $_POST['password'] : '';
-    $confirmarSenha = isset($_POST['confirm_password']) ? $_POST['confirm_password'] : '';
+    $confirmarSenha = isset($_POST['confirm-password']) ? $_POST['confirm-password'] : '';
 
-    // Valida os campos
     if (empty($nome) || empty($email) || empty($senha) || empty($confirmarSenha)) {
         $error = "Please fill in all fields.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Invalid email.";
-    } elseif (strlen($senha) < 6) { // Senha deve ter pelo menos 6 caracteres
+        $error = "Invalid email address,please include an '@' in the email address.";
+    } elseif (strlen($senha) < 6) {
         $error = "Password must have at least 6 characters.";
     } elseif ($senha !== $confirmarSenha) {
         $error = "Passwords do not match.";
     } else {
-        // Verifica se o email já está registado
         $sql = "SELECT id_utilizador FROM utilizadores WHERE email = ?";
         $stmt = $liga->prepare($sql);
         $stmt->bind_param('s', $email);
@@ -34,30 +31,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            $error = "This email is already registered.";
+            $error = "An account with this email already exists. Please use another email or log in.";
         } else {
-            // Insere o novo utilizador
             $hashedPassword = password_hash($senha, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO utilizadores (nome_utilizador, email, senha, tipo_utilizador) VALUES (?, ?, ?, 'normal')";
+            $sql = "INSERT INTO utilizadores (nome_utilizador, email, senha, tipo_utilizador) VALUES (?, ?, ?, 'User')";
             $stmt = $liga->prepare($sql);
             $stmt->bind_param('sss', $nome, $email, $hashedPassword);
 
             if ($stmt->execute()) {
-                $success = "Account created successfully! You can now log in.";
+                // Enviar e-mail de boas-vindas
+                enviarEmailBoasVindas($email, $nome); // Chama a função para enviar o e-mail
 
-                // Envio do email
-                $assunto = "Welcome to PlugVintage!";
-                $mensagem = "Hello $nome,\n\nThank you for registering at PlugVintage!\n\nIf you need any help, contact us.\n\nBest regards,\nPlugVintage Team";
-
-                // Cabeçalhos do email
-                $headers = "From: no-reply@plugvintage.com\r\n";
-                $headers .= "Reply-To: support@plugvintage.com\r\n";
-                $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-
-                // Tenta enviar o email
-                if (!mail($email, $assunto, $mensagem, $headers)) {
-                    $error = "Account created, but an error occurred while sending the email.";
-                }
+                // Redirecionar para o login com sucesso
+                header("Location: login.php?success=1");
+                exit();
             } else {
                 $error = "Error creating account. Please try again.";
             }
@@ -72,21 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign Up - PlugVintage</title>
-  <link rel="stylesheet" href="./css/style.css">
-
-
-
   <link rel="icon" href="img/IMAGENS PARA O ICON SITE/logoplug.jpg" type="image/png">
-  
-
+  <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
+<header class="header">
     <a href="index.php" class="logo">
-    <img src="img/IMAGENS PARA O ICON SITE/logoplug-removebg-preview.png" alt="PlugVintage Logo">
+        <img src="img/IMAGENS PARA O ICON SITE/logoplug-removebg-preview.png" alt="PlugVintage Logo">
     </a>
-
     <nav class="navbar">
         <a href="index.php">HOME</a>
         <a href="listar.php">SHOP ALL</a>
@@ -95,69 +75,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a href="sweats+jackets.php">SWEATS + JACKETS</a>
         <a href="shoes.php">SHOES</a>
         <a href="accesories.php">ACCESORIES</a>
-      </nav>
-
-      <div class="icons">
-      <!-- Ícone de pesquisa -->
-  <a href="#" id="search-icon">
-    <img src="img/IMAGENS INDEX/pesquisa.png" alt="Pesquisa" class="icon-image">
-  </a>
-  <!-- Ícone de carrinho -->
-  <a href="cart.php">
-    <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
-  </a>
-  <!-- Ícone de perfil -->
-  <div class="profile-container">
-    <a href="#" id="profile-icon">
-        <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
-    </a>
-    <div class="profile-dropdown" id="profile-dropdown">
-        <?php if (isset($_SESSION['nome_utilizador'])): ?>
-            <p>Hello, <?php echo htmlspecialchars($_SESSION['nome_utilizador']); ?></p>
-            <button id="logout-btn">Logout</button>
-        <?php else: ?>
-            <a href="login.php">Sign in</a>
-        <?php endif; ?>
+    </nav>
+    <div class="icons">
+        <a href="#" id="search-icon">
+            <img src="img/IMAGENS INDEX/pesquisa.png" alt="Search" class="icon-image">
+        </a>
+        <div class="profile-dropdown" id="profile-dropdown">
+            <?php if (isset($_SESSION['nome_utilizador'])): ?>
+                <p>Hello, <?php echo htmlspecialchars($_SESSION['nome_utilizador']); ?></p>
+                <button id="logout-btn">Logout</button>
+            <?php else: ?>
+                <a href="login.php">Sign in</a>
+            <?php endif; ?>
+        </div>
     </div>
-</div>
-</div>
+</header>
 
-<!-- Modal de Pesquisa -->
-<div id="search-modal">
-    <div class="search-box">
-        <button id="close-modal" class="close-btn">&times;</button>
-        <input type="text" id="search-input" placeholder="Search products..." class="search-input">
-        <button id="search-button" class="search-button">Search</button>
-    </div>
-</div>
-    </header>
-
- <div class="register-container">
-    <!-- Botão de voltar -->
+<div class="register-container">
     <button class="back-button" onclick="history.back()">
         <img src="img/IMAGENS INDEX/seta-esquerda.png" alt="Back">
     </button>
 
-    <!-- Formulário de Registo -->
     <div class="register-box">
         <h1>Sign Up</h1>
 
-        <form action="register.php" method="POST">
+        <?php if (!empty($error)): ?>
+            <div class="error-message"><?php echo $error; ?></div>
+        <?php endif; ?>
+
+        <form id="registerForm" action="register.php" method="POST" novalidate>
             <label for="full-name">Full Name:</label>
             <input type="text" id="full-name" name="full-name" required>
 
             <label for="email">Email Address:</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email" required title="Please enter a valid email address">
 
             <label for="password">Password:</label>
             <div class="password-container">
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" required title="Password must have at least 6 characters">
                 <img src="img/IMAGENS INDEX/ocultar.png" alt="Show Password" onclick="togglePassword('password', this)">
             </div>
 
             <label for="confirm-password">Confirm Password:</label>
             <div class="password-container">
-                <input type="password" id="confirm-password" name="confirm-password" required>
+                <input type="password" id="confirm-password" name="confirm-password" required title="Passwords must match">
                 <img src="img/IMAGENS INDEX/ocultar.png" alt="Show Password" onclick="togglePassword('confirm-password', this)">
             </div>
 
@@ -166,20 +127,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-
-
-
-
 <script>
+document.getElementById("registerForm").onsubmit = function(event) {
+    // Verificar e alterar a mensagem de erro para o e-mail
+    var emailInput = document.getElementById("email");
+    if (emailInput.validity.typeMismatch) {
+        emailInput.setCustomValidity("Please include an '@' in the email address");
+    } else {
+        emailInput.setCustomValidity("");  // Limpar a mensagem de erro
+    }
+
+    // Verificar e alterar a mensagem de erro para a senha
+    var passwordInput = document.getElementById("password");
+    if (passwordInput.validity.tooShort) {
+        passwordInput.setCustomValidity("Password must have at least 6 characters");
+    } else {
+        passwordInput.setCustomValidity("");  // Limpar a mensagem de erro
+    }
+};
+
 function togglePassword(inputId, icon) {
     var input = document.getElementById(inputId);
-    
     if (input.type === "password") {
         input.type = "text";
-        icon.src = "img/IMAGENS INDEX/olho.png"; // Ícone de ocultar
+        icon.src = "img/IMAGENS INDEX/olho.png";
     } else {
         input.type = "password";
-        icon.src = "img/IMAGENS INDEX/ocultar.png"; // Ícone de mostrar
+        icon.src = "img/IMAGENS INDEX/ocultar.png";
     }
 }
 </script>

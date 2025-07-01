@@ -1,31 +1,52 @@
 <?php
-include 'config.php'; // Inclui o ficheiro de configuração
+include 'config.php'; // Inclui a ligação à base de dados
 
-// Verificar se a ligação foi bem-sucedida
 if (!$liga) {
     die("Erro ao conectar à base de dados: " . mysqli_connect_error());
 }
 
-$query = $_GET['query'] ?? ''; // Obtém o termo de pesquisa
+$query = $_GET['query'] ?? '';
 $response = [];
 
 if (!empty($query)) {
-    // Prepara a consulta
-    $stmt = mysqli_prepare($liga, "SELECT id_produtos, nome_produto, caminho_imagem FROM produtos WHERE nome_produto LIKE ? LIMIT 5");
-    $searchTerm = "%$query%";
-    mysqli_stmt_bind_param($stmt, "s", $searchTerm);
+    // Prepara os termos para o modo booleano do FULLTEXT (+nike +tn)
+    $fulltextSearch = "+" . implode(" +", explode(" ", $query));
+    $likeSearch = "%" . $query . "%";
+
+    // Tenta primeiro com FULLTEXT, se falhar pode usar LIKE como fallback (se quiseres)
+    $stmt = mysqli_prepare($liga, "
+        SELECT id_produtos, nome_produto, caminho_imagem, quantidade 
+        FROM produtos 
+        WHERE MATCH(nome_produto, keywords) AGAINST (? IN BOOLEAN MODE) 
+        LIMIT 5
+    ");
+
+    mysqli_stmt_bind_param($stmt, "s", $fulltextSearch);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 
-    // Adiciona os resultados ao array
     while ($row = mysqli_fetch_assoc($result)) {
         $response[] = $row;
     }
+
+    // Fallback: se não encontrou nada, tenta com LIKE
+    if (empty($response)) {
+        $stmt = mysqli_prepare($liga, "
+            SELECT id_produtos, nome_produto, caminho_imagem, quantidade 
+            FROM produtos 
+            WHERE nome_produto LIKE ? 
+            LIMIT 5
+        ");
+        mysqli_stmt_bind_param($stmt, "s", $likeSearch);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+
+        while ($row = mysqli_fetch_assoc($result)) {
+            $response[] = $row;
+        }
+    }
 }
 
-// Retorna os resultados como JSON
 header('Content-Type: application/json');
-// Apenas para testes, remove o comentário abaixo se quiser visualizar no navegador
-// print_r($response); // Comentado para não interferir na resposta JSON
 echo json_encode($response);
 ?>

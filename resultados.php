@@ -2,11 +2,8 @@
 session_start();
 include("config.php");
 
-
 $idUtilizador = $_SESSION['id_utilizador'] ?? null;
 $totalItensCarrinho = contarItensCarrinho($idUtilizador);
-
-
 
 $produtos_por_pagina = 12;
 $pagina_atual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -36,28 +33,25 @@ if (!empty($marca_id)) {
     $total_produtos = mysqli_fetch_assoc($total_result)['total'];
 
     $total_paginas = ceil($total_produtos / $produtos_por_pagina);
+
 } elseif (!empty($query)) {
-    // Buscar produtos por nome
-    $produtos = buscarProdutosPorNome($liga, $query, $produtos_por_pagina, $offset);
-
-    // Calcular total de produtos por nome
-    $stmt_total = mysqli_prepare($liga, "
-        SELECT COUNT(*) as total 
-        FROM produtos 
-        WHERE nome_produto LIKE ?
-    ");
-    $searchTerm = "%$query%";
-    mysqli_stmt_bind_param($stmt_total, "s", $searchTerm);
-    mysqli_stmt_execute($stmt_total);
-    $total_result = mysqli_stmt_get_result($stmt_total);
-    $total_produtos = mysqli_fetch_assoc($total_result)['total'];
-
+    // Buscar produtos por nome (com contagem)
+    $resultadoBusca = buscarProdutosPorNomeComContagem($liga, $query, $produtos_por_pagina, $offset);
+    $produtos = $resultadoBusca['produtos'];
+    $total_produtos = $resultadoBusca['total'];
     $total_paginas = ceil($total_produtos / $produtos_por_pagina);
+    
 } else {
     echo "Nenhuma marca ou termo de busca foi selecionado.";
 }
 
+// Construção da query string para paginação
+$params = [];
+if (!empty($query)) $params[] = 'query=' . urlencode($query);
+if (!empty($marca_id)) $params[] = 'marca=' . urlencode($marca_id);
+$queryString = !empty($params) ? '&' . implode('&', $params) : '';
 ?>
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -86,15 +80,14 @@ if (!empty($marca_id)) {
       </nav>
 
       <div class="icons">
+      <!-- Ícone de pesquisa -->
+  <a href="#" id="search-icon">
+    <img src="img/IMAGENS INDEX/pesquisa.png" alt="Pesquisa" class="icon-image">
+  </a>
 
-        <!-- Ícone de pesquisa -->
-            <a href="#" id="search-icon">
-                <img src="img/IMAGENS INDEX/pesquisa.png" alt="Pesquisa" class="icon-image">
-            </a>
 
-
-        <!-- Ícone do carrinho -->
-        <a href="cart.php" class="cart-container">
+  <!-- Ícone do carrinho -->
+  <a href="cart.php" class="cart-container">
                 <img src="img/IMAGENS INDEX/carrinho.png" alt="Carrinho" class="icon-image">
                 <?php if ($totalItensCarrinho > 0): ?>
                     <span class="cart-counter"><?php echo $totalItensCarrinho; ?></span>
@@ -103,8 +96,8 @@ if (!empty($marca_id)) {
 
 
 
-        <!-- Ícone de perfil -->
-        <div class="profile-container">
+  <!-- Ícone de perfil -->
+  <div class="profile-container">
                 <a href="#" id="profile-icon">
                     <img src="img/IMAGENS INDEX/profile.png" alt="Profile" class="icon-image">
                 </a>
@@ -112,6 +105,7 @@ if (!empty($marca_id)) {
                     <div class="profile-dropdown" id="profile-dropdown">
                         <?php if (isset($_SESSION['nome_utilizador'])): ?>
                             <p>Hello, <?php echo htmlspecialchars($_SESSION['nome_utilizador']); ?></p>
+                            <a href="myperfil.php" class="myperfil-btn">My perfil</a>
                             <button id="logout-btn" class="logout-button">Logout</button>
                         <?php else: ?>
                             <a href="login.php">Sign In</a>
@@ -121,16 +115,33 @@ if (!empty($marca_id)) {
             </div>
 
 
-      </div>
+<!-- Modal de Pesquisa -->
+<div id="search-modal">
+    <div class="search-box">
+        <button id="close-modal" class="close-btn">&times;</button>
+        <input type="text" id="search-input" placeholder="Search products..." class="search-input">
+        <button id="search-button" class="search-button">Search</button>
+    </div>
+</div>
     </header>
+    <!-- Contador -->
+<div class="contador-wrapper">
+    <p id="contador-resultados">
+        <strong><?= $total_produtos ?></strong> product/s found
+    </p>
+</div>
 
     <div class="products">
       <?php if (empty($produtos)): ?>
-        <p style="text-align: center; margin-top: 50px;">Nenhum produto encontrado.</p>
+        <p style="text-align: center; margin-top: 50px;">No products found.</p>
       <?php else: ?>
+        
         <?php foreach ($produtos as $produto): ?>
           <div class="product" caminho_imagem_hover="<?php echo htmlspecialchars($produto['caminho_imagem_hover']); ?>">
             <a href="produto.php?id_produtos=<?php echo htmlspecialchars($produto['id_produtos']); ?>">
+                <?php if ($produto['quantidade'] == 0): ?>
+      <div class="sold-out-label">SOLD OUT</div>
+    <?php endif; ?>
               <img src="<?php echo htmlspecialchars($produto['caminho_imagem']); ?>" alt="<?php echo htmlspecialchars($produto['nome_produto']); ?>">
             </a>
             <div class="product-title"><?php echo htmlspecialchars($produto['nome_produto']); ?></div>
@@ -143,18 +154,56 @@ if (!empty($marca_id)) {
       <?php endif; ?>
     </div>
 
-    <div class="pagination">
-      <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
-        <a href="?<?php echo !empty($marca_id) ? "marca=$marca_id" : "query=$query"; ?>&pagina=<?php echo $i; ?>" 
-           class="<?php echo ($pagina_atual == $i) ? 'active' : ''; ?>">
-          <?php echo $i; ?>
+ 
+
+
+
+
+
+  
+    
+    <!-- Paginação -->
+<div class="pagination">
+
+    <!-- Seta para página anterior -->
+    <?php if ($pagina_atual > 1): ?>
+        <a href="?pagina=<?= $pagina_atual - 1 . $queryString ?>" class="arrow-btn">
+            <img src="img/IMAGENS INDEX/angulo-esquerdo.png" alt="Anterior" class="pagination-arrow">
         </a>
-      <?php endfor; ?>
-    </div>
-  </div>
+    <?php endif; ?>
 
+    <!-- Primeira página -->
+    <?php if ($pagina_atual > 2): ?>
+        <a href="?pagina=1<?= $queryString ?>">1</a>
+        <?php if ($pagina_atual > 3): ?>
+            <span class="dots">...</span>
+        <?php endif; ?>
+    <?php endif; ?>
 
+    <!-- Páginas vizinhas -->
+    <?php for ($i = max(1, $pagina_atual - 1); $i <= min($total_paginas, $pagina_atual + 1); $i++): ?>
+        <a href="?pagina=<?= $i . $queryString ?>"
+           class="<?= $pagina_atual == $i ? 'active' : '' ?>">
+           <?= $i ?>
+        </a>
+    <?php endfor; ?>
 
+    <!-- Última página -->
+    <?php if ($pagina_atual < $total_paginas - 1): ?>
+        <?php if ($pagina_atual < $total_paginas - 2): ?>
+            <span class="dots">...</span>
+        <?php endif; ?>
+        <a href="?pagina=<?= $total_paginas . $queryString ?>"><?= $total_paginas ?></a>
+    <?php endif; ?>
+
+    <!-- Seta para próxima página -->
+    <?php if ($pagina_atual < $total_paginas): ?>
+        <a href="?pagina=<?= $pagina_atual + 1 . $queryString ?>" class="arrow-btn">
+            <img src="img/IMAGENS INDEX/angulo-direito.png" alt="Seguinte" class="pagination-arrow">
+        </a>
+    <?php endif; ?>
+
+</div>
 
   <script>
     const items = document.querySelectorAll('.product');
@@ -171,44 +220,43 @@ if (!empty($marca_id)) {
   </script>
 
 
+
+<!----------------Java Script Do Pesquisar---------------->
 <script>
 // Seleção de elementos
 const searchIcon = document.getElementById("search-icon");
 const searchModal = document.getElementById("search-modal");
 const closeModal = document.getElementById("close-modal");
 const searchInput = document.getElementById("search-input");
-const suggestionList = document.createElement("ul"); // Lista para sugestões
+const suggestionList = document.createElement("ul");
 const searchButton = document.getElementById("search-button");
 const productsLabel = document.createElement("p");
 
-// Adiciona elementos dinâmicos ao modal
+// Estilo da lista
 productsLabel.id = "products-label";
 productsLabel.textContent = "Products";
 productsLabel.style.display = "none";
 suggestionList.id = "suggestion-list";
 suggestionList.style.marginTop = "10px";
 suggestionList.style.listStyle = "none";
-suggestionList.style.maxHeight = "200px"; // Limita a altura
-suggestionList.style.overflowY = "scroll"; // Adiciona scroll
+suggestionList.style.maxHeight = "200px";
+suggestionList.style.overflowY = "scroll";
 searchInput.insertAdjacentElement("afterend", productsLabel);
 productsLabel.insertAdjacentElement("afterend", suggestionList);
 
-// Verifica se elementos críticos existem antes de adicionar eventos
 if (searchIcon && searchModal && closeModal && searchInput) {
-    // Mostrar o modal ao clicar no ícone de pesquisa
+    // Abrir modal
     searchIcon.addEventListener("click", (e) => {
         e.preventDefault();
-        console.log("Ícone de pesquisa clicado!");
-        searchModal.classList.add("active"); // Adiciona a classe active
+        searchModal.classList.add("active");
     });
 
-    // Fechar o modal ao clicar no botão de fechar
+    // Fechar modal
     closeModal.addEventListener("click", () => {
-        searchModal.classList.remove("active"); // Remove a classe active
-        console.log("Modal fechado!");
+        searchModal.classList.remove("active");
     });
 
-    // Mostrar sugestões enquanto escreves
+    // Sugestões dinâmicas
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.trim();
 
@@ -216,52 +264,62 @@ if (searchIcon && searchModal && closeModal && searchInput) {
             fetch(`/JoaoFigueiredo2425/search.php?query=${encodeURIComponent(query)}`)
                 .then((response) => response.json())
                 .then((data) => {
-                    console.log(data); // Verificar a estrutura do objeto retornado
-                    suggestionList.innerHTML = ""; // Limpa sugestões antigas
-
+                    suggestionList.innerHTML = "";
                     if (data.length > 0) {
-                        productsLabel.style.display = "block"; // Mostra o rótulo "Produtos"
+                        productsLabel.style.display = "block";
                         data.forEach((product) => {
                             const li = document.createElement("li");
                             li.style.display = "flex";
                             li.style.alignItems = "center";
                             li.style.marginBottom = "5px";
 
+                            // Verifica quantidade
+                            let soldOutLabel = "";
+                            if (product.quantidade == 0) {
+                                soldOutLabel = `<span style="
+                                    background-color: red;
+                                    color: white;
+                                    font-weight: bold;
+                                    font-size: 10px;
+                                    padding: 2px 6px;
+                                    margin-left: 8px;
+                                    border-radius: 4px;
+                                ">SOLD OUT</span>`;
+                            }
+
                             li.innerHTML = `
                                 <img src="${product.caminho_imagem}" alt="${product.nome_produto}" style="width:50px;height:50px;margin-right:10px;">
-                                <span>${product.nome_produto}</span>
+                                <span>${product.nome_produto}${soldOutLabel}</span>
                             `;
+
                             li.addEventListener("click", () => {
                                 if (product.id_produtos) {
                                     window.location.href = `/JoaoFigueiredo2425/produto.php?id_produtos=${product.id_produtos}`;
-                                } else {
-                                    console.error("ID do produto não encontrado.");
                                 }
                             });
+
                             suggestionList.appendChild(li);
                         });
                     } else {
-                        productsLabel.style.display = "none"; // Esconde o rótulo
+                        productsLabel.style.display = "none";
                     }
                 })
                 .catch((error) => console.error("Erro ao buscar produtos:", error));
         } else {
-            suggestionList.innerHTML = ""; // Limpa sugestões
+            suggestionList.innerHTML = "";
             productsLabel.style.display = "none";
         }
     });
 
-    // Redirecionar para a página de resultados ao clicar em "Pesquisar"
+    // Botão "Search"
     searchButton.addEventListener("click", () => {
         const query = searchInput.value.trim();
-        console.log("Botão 'Pesquisar' clicado!"); // Verifica se o evento é acionado
-        console.log("Termo de pesquisa:", query); // Mostra o termo de pesquisa no console
         if (query) {
             window.location.href = `/JoaoFigueiredo2425/resultados.php?query=${encodeURIComponent(query)}`;
         }
     });
 
-    // Redirecionar para a página de resultados ao pressionar "Enter"
+    // Enter para pesquisar
     searchInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
             const query = searchInput.value.trim();
@@ -271,9 +329,10 @@ if (searchIcon && searchModal && closeModal && searchInput) {
         }
     });
 } else {
-    console.error("Elementos necessários para o modal de pesquisa não foram encontrados.");
+    console.error("Elementos do modal de pesquisa não encontrados.");
 }
 </script>
+
 
 
 
@@ -332,6 +391,10 @@ if (searchIcon && searchModal && closeModal && searchInput) {
         });
 
     </script>
+
+
+
+
     
 <?php include('footer.php'); ?>
 </body>
